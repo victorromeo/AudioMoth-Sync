@@ -8,12 +8,12 @@ This project supports the Monash University AgTech Rodent Tracking project, to d
 
 - Raspberry PI ([3B+](https://www.raspberrypi.org/products/raspberry-pi-3-model-b-plus/) or [4B](https://www.raspberrypi.org/products/raspberry-pi-4-model-b/))
     - 16GB or 32GB SD microSD card (For the OS)
-    - [Raspberian](https://www.raspberrypi.org/downloads/raspbian/)
+    - [Raspbian](https://www.raspberrypi.org/downloads/raspbian/)
     - Power Supply
         - [2.5mA microUSB for RPi 3B+](https://www.raspberrypi.org/products/raspberry-pi-universal-power-supply/)
         - [15W Type-C for RPi 4B](https://www.raspberrypi.org/products/type-c-power-supply/)
         - Battery pack
-        - 20W Solar panel and solar controller with load 
+        - 20W Solar panel and solar controller with load
     - [RTC for Rpi](https://core-electronics.com.au/ds1307-rtc-module-with-battery-for-raspberry-pi.html)
     - [Duinotech XC9021 5MP Night Vision camera for Raspberry PI](https://www.jaycar.com.au/5mp-night-vision-camera-for-raspberry-pi/p/XC9021)
 - AudioMoth (1.0.0 or later)
