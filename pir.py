@@ -12,17 +12,34 @@ from sh import mount, umount
 import sys
 import itertools
 
-
 pirEnabled = False
 cameraEnabled = False
+
+# RPI GPIO allocations
+
+pin_pir1 = 26
+pin_pir2 = 27
+
+pin_am_rst = 19
+pin_am_swo = 18
+pin_am_swclk = 17
+pin_am_swdio = 16
 
 # Inputs
 
 if (pirEnabled):
-    pir = MotionSensor(4)
+    pir1 = MotionSensor(pin_pir1)
+    pir2 = MotionSensor(pin_pir2)
 
 if (cameraEnabled):
     camera = PiCamera()
+
+AudioMoth_RST   = LED(pin_am_rst)
+AudioMoth_SWO   = LED(pin_am_swo)
+AudioMoth_SWDIO = LED(pin_am_swdio)
+AudioMoth_SWCLK = LED(pin_am_swclk)
+
+# Safety Limits
 
 minDiskMB = 200
 minDiskPercent = 0.2
@@ -43,6 +60,9 @@ if (cameraEnabled):
     camera.start_preview()
 
 i = 0
+
+def flashAudioMoth():
+    AudioMoth_SWCLK()
 
 def getMothUUID():
     if (len(sys.argv) > 1 and len(sys.argv[1]) > 1):
