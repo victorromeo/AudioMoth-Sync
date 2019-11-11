@@ -233,7 +233,7 @@ class audiomoth:
             # Report failure
             while self.is_mounted() and mTimeout > 0:
                 # Lift the SWDIO pin, to cause the AudioMoth to remove the USB MSD protocol support
-                usbModeOff()
+                self.usbModeOff()
                 time.sleep(mPoll)
                 mTimeout -= mPoll
 
