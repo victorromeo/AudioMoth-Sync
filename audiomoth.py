@@ -16,6 +16,24 @@ getMothMountPathCommand = "mount | grep -F '{0}' | cut -d \" \" -f 3"
 unmountCommand = "umount -l {0}"
 path_to_watch = "/dev"
 
+def output_shell(line):
+
+    try:
+        shell_command = Popen(line, stdout=PIPE, stderr=PIPE, shell=True)
+    except OSError:
+        return None
+    except ValueError:
+        return None
+
+    (output, err) = shell_command.communicate()
+    shell_command.wait()
+
+    if shell_command.returncode != 0:
+        print("Shell command failed to execute")
+        return None, False
+
+    return str(output.decode("utf-8")), True
+
 class audiomoth:
 
     def __init__(self, swdio, rst, swo, clk):
@@ -28,27 +46,11 @@ class audiomoth:
         self.device_name = None
         self.device_path = None
 
-    def __output_shell(self, line):
 
-        try:
-            shell_command = Popen(line, stdout=PIPE, stderr=PIPE, shell=True)
-        except OSError:
-            return None
-        except ValueError:
-            return None
-
-        (output, err) = shell_command.communicate()
-        shell_command.wait()
-
-        if shell_command.returncode != 0:
-            print("Shell command failed to execute")
-            return None, False
-
-        return str(output.decode("utf-8")), True
 
     def getMothDeviceName(self):
         # print(getMothDeviceNameCommand)
-        moth_device_name, success = self.__output_shell(getMothDeviceNameCommand)
+        moth_device_name, success = output_shell(getMothDeviceNameCommand)
 
         self.device_name = moth_device_name[:-1] if (success and len(moth_device_name) > 3) else None
         self.device_path = path_to_watch + '/' + moth_device_name[:-1] if (success and len(moth_device_name) > 3) else None
@@ -58,7 +60,7 @@ class audiomoth:
     def getMothMountPath(self):
         command = getMothMountPathCommand.format(self.device_path)
         # print(command)
-        mount_path, success = self.__output_shell(command)
+        mount_path, success = output_shell(command)
         self.mount_path = mount_path[:-1] if (success and len(mount_path) > 3) else None
 
         return self.mount_path
@@ -227,7 +229,7 @@ class audiomoth:
             # Umount the filesystem mount point (Lazily)
             command = unmountCommand.format(self.device_path)
             print(command)
-            self.__output_shell(command)
+            output_shell(command)
             time.sleep(10)
 
             # Report failure
