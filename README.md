@@ -184,21 +184,39 @@ The pins are VCC (5 Volt), OUT (3.3V Max), GND
 
 ### Wiring GPIO 
 
-![GPIO Connections](doc/XC9050-Connect.jpg)<br>
+![AudioMoth Pins](doc/Raspberry-Pi-GPIO.png)<br>
 *GPIO Expansion Header*
 
-![AudioMoth Pins](doc/AudioMothPins.png)<br>
+![GPIO Connections](doc/AudioMothPins.png)<br>
 *AudioMoth Pins - On AudioMoth 1.x.0 pin closest to the corner is Ground*
 
-RED
 
-1. GND - AudioMoth PIN 6
-2. RST - AudioMoth PIN 5
-3. SWO - AudioMoth PIN 4
-4. SWCLK - AudioMoth PIN 3
-5. SWDIO - AudioMoth PIN 2
+| Function                                   | Source          | RPi Header Pin Number | Raspberry PI GPIO ID |
+| ------------------------------------------ | ----------------| --------------------- | -------------------- |
+| AudioMoth SWDIO                            | AudioMoth Pin 2 | 38                    | IO20                 |
+| AudioMoth SWCLK                            | AudioMoth Pin 3 | 40                    | IO21                 |
+| AudioMoth SWO                              | AudioMoth Pin 4 | 15                    | IO22                 |
+| AudioMoth SWI_CPU_RST                      | AudioMoth Pin 5 | 16                    | IO23                 |
+| PIR 1 Motion (5V and GND pins needed also) | PIR 1 Out       | 18                    | IO24                 |
+| PIR 2 Motion (5V and GND pins needed also) | PIR 2 Out       | 22                    | IO25                 | 
 
-BLUE
+### PiJuice
 
-6. PIR 1 OUT (5V and GND pins needed also)  
-7. PIR 2 OUT (5V and GND pins needed also)
+```text
+PiJuice GPIO Pin Allocations (Taken from PiJuice documentation)
+-----------------------------------------------------------------------------------------------------------------------
+| 2     4     6     8    10    12    14    16    18    20    22    24    26    28    30    32    34    36    38    40 |
+|5V    5V    GND   o     o     o     GND   o     o     GND   o     o     o     +     GND   o     GND   o     o     o  |
+|3V3   #     #     o     GND   o     o     o     3V3   o     o     o     GND   +     o     o     o     o     o     GND|
+| 1     3     5     7     9    11    13    15    17    19    21    23    25    27    29    31    33    35    37    39 |
+-----------------------------------------------------------------------------------------------------------------------
+
+# Used
+o Available
++ Can be reused
+
+3 I2C_SDA to MCU
+5 I2C_SCL to MCU
+27 I2C_SDA to HAT EEPROM
+28 I2C_SDL to HAT EEPROM
+```
