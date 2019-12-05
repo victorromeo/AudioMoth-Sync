@@ -20,7 +20,7 @@ class InputOutputDevice:
 
         if (mode == IOState.Input):
             self.device = DigitalInputDevice(self.pin, pin_factory = self.pin_factory)
-        else:
+        elif (mode == IOState.Output):
             self.device = DigitalOutputDevice(self.pin, active_high = True, initial_value = self.value, pin_factory = self.pin_factory)
 
     def value(self):
@@ -36,13 +36,17 @@ class InputOutputDevice:
         if (self.mode == IOState.Output):
             self.value = True
             self.device.on()
+        else:
+            print("Output failed. Not in Output state")
 
     def low(self):
         if (self.mode == IOState.Output):
             self.value = False
             self.device.off()
+        else:
+           print("Output failed. Not in Output state")
 
-    def set(value: bool):
+    def set(self, value: bool):
         if (value):
             self.high()
         else:
@@ -58,12 +62,14 @@ class InputOutputDevice:
 
         self.device = DigitalInputDevice(self.pin, pull_up = self.pull_up_in, active_state = self.active_state_in, bounce_time = self.bounce_time_in, pin_factory = self.pin_factory)
         self.value = self.device.value
+        self.mode = IOState.Input
 
     def outputMode(self, initial_value: bool = None):
         if (self.mode == IOState.Output):
-            if (initial_value != None): 
+            if (initial_value != None):
                 self.value = initial_value
             self.set(self.value)
+            return
 
         if (self.mode == IOState.Input):
             self.device.close()
@@ -71,6 +77,7 @@ class InputOutputDevice:
 
         self.device = DigitalOutputDevice(self.pin, active_high = self.active_high_out, initial_value = initial_value, pin_factory = self.pin_factory)
         self.value = initial_value
+        self.mode = IOState.Output
 
     def close(self):
         if (self.mode == IOState.Input or self.mode == IOState.Output):
