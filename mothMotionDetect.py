@@ -19,13 +19,13 @@ cameraEnabled = False
 
 # RPI GPIO allocations
 
-pin_pir1 = 26
-pin_pir2 = 27
+pin_pir1 = 24
+pin_pir2 = 25
 
-pin_am_rst = 19
-pin_am_swo = 18
-pin_am_swclk = 17
-pin_am_swdio = 16
+pin_am_rst = 23
+pin_am_swo = 22
+pin_am_swclk = 21
+pin_am_swdio = 20
 
 # Default Paths
 
