@@ -8,31 +8,13 @@
 from iodevice import IOState, InputOutputDevice
 import time
 import os
-from subprocess import Popen, PIPE
+from shell import output_shell
 
 # Command to fetch the device name of the AudioMoth
 getMothDeviceNameCommand = "ls -la /dev/moth* | grep 'sd.[0-9]' | awk 'NF>1{print $NF}'"
 getMothMountPathCommand = "mount | grep -F '{0}' | cut -d \" \" -f 3"
 unmountCommand = "umount -l {0}"
 path_to_watch = "/dev"
-
-def output_shell(line):
-
-    try:
-        shell_command = Popen(line, stdout=PIPE, stderr=PIPE, shell=True)
-    except OSError:
-        return None
-    except ValueError:
-        return None
-
-    (output, err) = shell_command.communicate()
-    shell_command.wait()
-
-    if shell_command.returncode != 0:
-        print("Shell command failed to execute")
-        return None, False
-
-    return str(output.decode("utf-8")), True
 
 class audiomoth:
 
