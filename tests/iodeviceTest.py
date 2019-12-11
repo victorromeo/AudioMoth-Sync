@@ -1,4 +1,4 @@
-from iodevice import *
+from ..iodevice import *
 
 pin = 16
 p = InputOutputDevice(pin, IOState.Float)
