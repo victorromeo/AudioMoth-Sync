@@ -178,31 +178,6 @@ class audiomoth:
             logging.error("mountMoth: failed to mount moth filesystem")
             raise Exception("Failed to mount device. Check for SD card and filesystem on SD Card")
 
-        # # Detect changes in the device 'dev' folder, and wait for the Moth to be found
-        # moth_found = False
-        # while not moth_found:
-        #     time.sleep (10)
-        #     after = dict ([(f, None) for f in os.listdir (path_to_watch)])
-        #     added = [f for f in after if not f in before]
-        #     removed = [f for f in before if not f in after]
-        #
-        #     if added: print ("Added: ", ", ".join (added))
-        #     if removed: print ("Removed: ", ", ".join (removed))
-        #
-        #     moth_found = 'moth' in added
-        #     before = after
-
-        # Get the Mount Path
-        # self.device_name = self.getMothDeviceName()
-        # if (self.device_name == None):
-        #     print('Failed to find AudioMoth - AudioMoth not mounted')
-        #     raise Exception('Failed to find AudioMoth - AudioMoth not mounted')
-        #
-        # self.device_path = '/dev/' + self.device_name
-        # self.getMothMountPath()
-        #
-
-
         print(self.mount_path)
         print("Moth successfully mounted")
         logging.debug("mountMoth: Complete")
@@ -265,20 +240,6 @@ class audiomoth:
         self.device_name = None
         self.device_path = None
         self.mount_path = None
-
-                # moth_found = True
-                #
-                # while moth_found:
-                #     time.sleep (10)
-                #     after = dict ([(f, None) for f in os.listdir (path_to_watch)])
-                #     added = [f for f in after if not f in before]
-                #     removed = [f for f in before if not f in after]
-                #
-                #     if added: print ("Added: ", ", ".join (added))
-                #     if removed: print ("Removed: ", ", ".join (removed))
-                #
-                #     moth_found = 'moth' in removed
-                #     before = after
     
     def dateToBuffer(self, buffer:[], offset, dateValue:datetime):
         timestamp = math.floor(dateValue.timestamp())
