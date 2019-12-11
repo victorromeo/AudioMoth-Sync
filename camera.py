@@ -1,6 +1,6 @@
 from configuration import configuration as config
 from log import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from picamera import PiCamera
 from time import sleep
 
@@ -9,12 +9,12 @@ class camera:
 
     def image_filename(self, image_path:str = None, now:datetime = None):
         if now == None:
-            now = datetime.now()
+            now = datetime.now(timezone.utc)
 
         if image_path == None:
             image_path = config.local_visual_path
 
-        return "{0}/{1:04}{2:02}{3:02}{4:02}{5:02}{6:02}.jpg".format(image_path,now.year,now.month,now.day,now.hour,now.minute,now.second)
+        return "{0}/{1:04}{2:02}{3:02}_{4:02}{5:02}{6:02}.jpg".format(image_path,now.year,now.month,now.day,now.hour,now.minute,now.second)
 
     def click(self, count:int = 1, delay_ms:int = 0):
 
