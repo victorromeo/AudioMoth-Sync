@@ -9,3 +9,7 @@ class configuration:
     local_visual_path = '/home/pi/Documents/AudioMoth-Sync/visual'
     motion_sec = 5
     motion_queue_len = 50
+    min_disk_mb = 200
+    min_disk_percent = 0.2
+    photo_count_on_motion = 5
+    photo_count_delay_sec = 1

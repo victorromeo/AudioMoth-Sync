@@ -5,7 +5,7 @@ from gpiozero import MotionSensor, Button, LED
 from picamera import PiCamera
 from gpiozero.tools import booleanized, all_values, any_values
 from signal import pause
-from time import sleep
+from time import sleep, time
 from datetime import datetime
 import shutil
 from sh import mount, umount
@@ -83,16 +83,17 @@ def take_photo():
         camera.capture("{0}/image_{1:04}{2:02}{3:02}_{4:02}{5:02}{6:02}.jpg".format(imagePath,now.year,now.month,now.day,now.hour,now.minute,now.second))
 
 def startRecording():
+    global is_recording, is_transferring, first_motion, last_motion
 
-    if is_transferring:
+    if (is_transferring):
         return
 
     # Start the clock
-    if not is_recording:
-        first_motion = time.time()
+    if (not is_recording):
+        first_motion = time()
 
     # Update the clock if a new motion event occurs
-    last_motion = time.time()
+    last_motion = time()
 
     # Capture a series of photos every time motion occurs
     for _ in itertools.repeat(None, photoCountOnMotion):
@@ -100,14 +101,15 @@ def startRecording():
         sleep(photoCountDelaySec)
 
     # Prevent commencing unmount operations if it is already underway
-    if not is_recording:
-        is_recording = true
+    if (not is_recording):
+        is_recording = True
 
         # Audio capture commences when the AudioMoth is unmounted and the device removed
         moth.unmountMoth()
 
 def transferFilesToLocal():
-    if is_transferring:
+    global is_transferring
+    if (is_transferring):
         return
 
     is_transferring = True
@@ -121,16 +123,16 @@ def transferFilesToLocal():
     logging.info("Fetching AudioMoth files list")
     files, success = output_shell(listFiles)
 
-    if success:
+    if (success):
         logging.info(", ".join(files))
         logging.info("Transferring AudioMoth to Local")
         result, success = output_shell(copyFiles)
 
-        if success:
+        if (success):
             logging.info("Transfer complete")
             result, success = output_shell(removeMothFiles)
 
-            if success:
+            if (success):
                 logging.info("AudioMoth files removed")
             else:
                 logging.warning("Failed to remove AudioMoth files")
@@ -142,14 +144,15 @@ def transferFilesToLocal():
     is_transferring = False
 
 def stopRecording():
-    if not is_recording:
+    global is_recording
+    if (not is_recording):
         return
 
-    now = time.time()
+    now = time()
 
     while (now - last_motion < 60):
-        time.sleep(1)
-        now = time.time()
+        sleep(1)
+        now = time()
 
     moth.mountMoth()
 

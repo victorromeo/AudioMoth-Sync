@@ -1,3 +1,5 @@
+from log import logging
+
 # This operation requires that udev has a custom rule to create a symbolic link when the AudioMoth is detected
 # To Add the required udev rule, run the following command
 #    nano /etc/udev/rules.d/10-local.rules
@@ -9,6 +11,8 @@ from iodevice import IOState, InputOutputDevice
 import time
 import os
 from shell import output_shell
+from datetime import datetime, timezone
+import math
 
 # Command to fetch the device name of the AudioMoth
 getMothDeviceNameCommand = "ls -la /dev/moth* | grep 'sd.[0-9]' | awk 'NF>1{print $NF}'"
@@ -31,20 +35,22 @@ class audiomoth:
 
 
     def getMothDeviceName(self):
-        # print(getMothDeviceNameCommand)
+
         moth_device_name, success = output_shell(getMothDeviceNameCommand)
 
         self.device_name = moth_device_name[:-1] if (success and len(moth_device_name) > 3) else None
         self.device_path = path_to_watch + '/' + moth_device_name[:-1] if (success and len(moth_device_name) > 3) else None
 
+        logging.debug("getMothDeviceName:{0}".format(self.device_name))
         return self.device_name
 
     def getMothMountPath(self):
         command = getMothMountPathCommand.format(self.device_path)
-        # print(command)
+
         mount_path, success = output_shell(command)
         self.mount_path = mount_path[:-1] if (success and len(mount_path) > 3) else None
 
+        logging.debug("getMothMountPath:{0}".format(self.mount_path))
         return self.mount_path
 
     def is_detected(self):
@@ -56,6 +62,7 @@ class audiomoth:
         else:
             print("AudioMoth device not detected")
 
+        logging.debug("is_detected:{0}".format(detected))
         return detected
 
     def is_mounted(self):
@@ -68,11 +75,13 @@ class audiomoth:
         else:
             print("AudioMoth device not mounted")
 
+        logging.debug("is_mounted:{0}".format(mounted))
         return mounted
 
     def usbModeOn(self):
         self.swdio.outputMode()
         self.swdio.low()
+        logging.debug("usbModeOn")
 
     def usbModeOff(self):
         self.swdio.outputMode()
@@ -80,6 +89,7 @@ class audiomoth:
         time.sleep(1)
 
         self.swdio.close()
+        logging.debug("usbModeOff")
 
     def resetMoth(self):
         print("AudioMoth restarting")
@@ -95,6 +105,7 @@ class audiomoth:
 
         # Close the pin to allow RST to complete
         self.rst.close()
+        logging.debug("resetMoth")
 
     def mountMoth(self):
 
@@ -107,6 +118,7 @@ class audiomoth:
         mounted = self.is_mounted()
 
         if (detected and mounted):
+            logging.debug("mountMoth: Already mounted")
             return
 
         before = dict ([(f, None) for f in os.listdir (path_to_watch)])
@@ -128,6 +140,7 @@ class audiomoth:
                 dTimeout -= dPoll
 
             if not detected:
+                logging.error("mountMoth: failed to detect via reset")
                 raise Exception("Failed to detected device via reset")
 
             mounted = self.is_mounted()
@@ -137,6 +150,7 @@ class audiomoth:
                 mTimeout -= mPoll
 
             if not mounted:
+                logging.error("mountMoth: failed to mount device via reset")
                 raise Exception("Failed to mount device via reset")
 
         if not detected:
@@ -152,6 +166,7 @@ class audiomoth:
                 dTimeout -= dPoll
 
             if not detected:
+                logging.error("mountMoth: failed to detect moth")
                 raise Exception("Failed to detected device. Check AudioMoth is connected")
 
         while not mounted and mTimeout > 0:
@@ -160,6 +175,7 @@ class audiomoth:
             mTimeout -= mPoll
 
         if not mounted:
+            logging.error("mountMoth: failed to mount moth filesystem")
             raise Exception("Failed to mount device. Check for SD card and filesystem on SD Card")
 
         # # Detect changes in the device 'dev' folder, and wait for the Moth to be found
@@ -189,7 +205,7 @@ class audiomoth:
 
         print(self.mount_path)
         print("Moth successfully mounted")
-
+        logging.debug("mountMoth: Complete")
         return
 
     def unmountMoth(self):
@@ -200,6 +216,7 @@ class audiomoth:
         dPoll    = 1
 
         if not self.is_detected():
+            logging.warning("unmountMoth: not connected")
             return
 
         # Get the folder content
@@ -223,8 +240,8 @@ class audiomoth:
 
             if self.is_mounted():
                 print("Moth failed to unmount")
-                raise Exception("Failed to unmount")
-                return
+                logging.error("unmountMoth: failed to unmount")
+                raise Exception("Failed to unmount moth")
 
         # Turn off the AudioMoth usb support
         while self.is_detected() and dTimeout > 0:
@@ -233,17 +250,18 @@ class audiomoth:
             dTimeout -= dPoll
 
         if self.is_detected():
-            print("Moth failed to disable USB MSD within expeced timeout (30s). Resetting")
+            print("Moth failed to disable USB MSD within expected timeout (30s). Resetting")
             self.usbModeOff()
             self.resetMoth()
             time.sleep(10)
 
         if self.is_detected():
             print("Moth failed to remove device")
+            logging.warning("unmountMoth: failed to remove device")
             raise Exception("Failed to remove device")
-            return
 
         print ("Moth successfully unmounted")
+        logging.debug("unmountMoth: Complete")
         self.device_name = None
         self.device_path = None
         self.mount_path = None
@@ -261,3 +279,54 @@ class audiomoth:
                 #
                 #     moth_found = 'moth' in removed
                 #     before = after
+    
+    def dateToBuffer(self, buffer:[], offset, dateValue:datetime):
+        timestamp = math.floor(dateValue.timestamp())
+        print(timestamp)
+        buffer[offset + 3] = (timestamp >> 24) & 0xff
+        buffer[offset + 2] = (timestamp >> 16) & 0xff
+        buffer[offset + 1] = (timestamp >> 8) & 0xff
+        buffer[offset + 0] = (timestamp & 0xff)
+
+    def bufferToDate(self, buffer, offset):
+        timestamp = 0
+        
+        if len(buffer) > 3:
+            timestamp |= (int(buffer[offset]) & 0xff) | ((int(buffer[offset + 1]) & 0xff) << 8) | ((int(buffer[offset + 2]) & 0xff) << 16) | ((int(buffer[offset + 3]) & 0xff) << 24)
+            print(timestamp)
+
+        #timestamp = ((buffer[offset] & 0xff) | (buffer[offset + 1] 0x0ff) | (buffer[offset + 2] & 0xff) | (buffer[offset + 3] & 0xff)) / 1000
+        return datetime.fromtimestamp(timestamp)
+
+    def setTime(self):
+        buffer = [0x00, 0x02, 0x00, 0x00, 0x00, 0x00]
+        self.dateToBuffer(buffer, 2, datetime.now(timezone.utc))
+        setTimeCommand = "./apps/usbhidtool 0x10C4 0x0002 {0}".format(''.join('0x{:02x} '.format(a) for a in buffer))
+        print(setTimeCommand)
+        result, success = output_shell(setTimeCommand)
+        if (success):
+            print(result)
+
+        logging.info("setTime {0}:{1}".format(setTimeCommand, result))
+        return success
+
+    def getTime(self):
+        buffer = [0x00, 0x01]
+        
+        getTimeCommand = "./apps/usbhidtool 0x10C4 0x0002 {0}".format(''.join('0x{:02x} '.format(a) for a in buffer))
+        result, success = output_shell(getTimeCommand)
+        logging.info("getTime {0}:{1}".format(getTimeCommand, result))
+        if success and result != 'NULL':
+            print(result)
+            hexValues = result.split(' ')
+
+            if hexValues[0] == 'NULL\n':
+                return False, None
+
+            for hexValue in hexValues:
+                buffer.append(int(hexValue, 16))
+
+        mothDate = self.bufferToDate(buffer, 3)
+        print("{0}".format(mothDate))
+
+        return success, mothDate

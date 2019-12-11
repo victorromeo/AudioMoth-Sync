@@ -1,6 +1,7 @@
+from configuration import configuration as config
+from log import logging
 from datetime import datetime
 from picamera import PiCamera
-from configuration import configuration as config
 from time import sleep
 
 class camera:
@@ -18,13 +19,17 @@ class camera:
     def click(self, count:int = 1, delay_ms:int = 0):
 
         if count <= 0 or count > 100:
+            logging.warning("click: count out of range ({0})".format(count))
             return
 
         if delay_ms < 0 or delay_ms > 10000:
+            logging.warning("click: delay_ms out of range ({0})".format(ms_delay))
             return
 
         for c in range(count):
-            self._camera.capture(self.image_filename())
+            filename = self.image_filename()
+            self._camera.capture(filename)
+            logging.debug("click: {0}".format(filename))
 
             if delay_ms > 0:
                 sleep(delay_ms)

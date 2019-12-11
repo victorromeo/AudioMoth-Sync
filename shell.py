@@ -1,9 +1,10 @@
 from subprocess import Popen, PIPE
-
+from log import logging
 
 def output_shell(line):
 
     try:
+        logging.debug(line)
         shell_command = Popen(line, stdout=PIPE, stderr=PIPE, shell=True)
     except OSError:
         return None
