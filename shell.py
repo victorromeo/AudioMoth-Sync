@@ -15,7 +15,8 @@ def output_shell(line):
     shell_command.wait()
 
     if shell_command.returncode != 0:
-        print("Shell command failed to execute")
+        print("Shell command failed to execute:{0}".format(line))
+        logging.warning("Command failed: {0}".format(line))
         return None, False
 
     return str(output.decode("utf-8")), True
