@@ -30,10 +30,10 @@ class diskio:
         listMothFilesCommand = "ls -1Ap {0}/*.WAV".format(moth_mount_path)
         logging.info("Fetching AudioMoth files list")
         files, success = output_shell(listMothFilesCommand)
-        fileList = files.splitlines()
+        fileList = [] if files is None else files.splitlines()
 
-        if success and fileList.length > 0:
-            logging.info("Recordings count {0}".format(fileList.length))
+        if success and len(fileList) > 0:
+            logging.info("Recordings count {0}".format(len(fileList)))
             logging.info(", ".join(fileList))
         else:
             logging.warning("No recordings found")
