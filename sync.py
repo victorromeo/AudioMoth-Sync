@@ -3,7 +3,7 @@ from datetime import datetime
 
 now = datetime.now()
 deviceName = "AgTech01"
-bucketName = "factorem001
+bucketName = "factorem001"
 
 # Moth Source
 mothPath = "/media/pi/MothMon"
