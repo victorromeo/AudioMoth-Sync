@@ -15,6 +15,6 @@ class configuration:
     min_disk_percent = 0.2
     photo_count_on_motion = 5
     photo_count_delay_sec = 1
-    ping_test_url = 'www.google.com'
+    ping_test_url = 'https://www.google.com'
     device_name = ''
     aws_bucket_name = ''
