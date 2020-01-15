@@ -21,51 +21,64 @@ echo    # (optional) move to a new line
 if [[ $REPLY =~ ^[Yy]$ ]]
 then
     # Recreate build folder
-    rm -rf ./build && mkdir ./build && cd ./build
+    mkdir -p build
+    cd build
 
-    sudo apt-get install git curl cmake make
+    sudo apt-get update -y
+    sudo apt-get upgrade -y
+    sudo apt-get install git curl pv cmake make -y
 
     # Build dependencies are architecture specific
-    arch=$(uname -m)
 
-    if [[ $arch == x86_64* ]]; then
-        echo "X64 Architecture"
-        curl -o gcc-arm-none-eabi-9-2019-q4-major-x86_64-linux.tar.bz2 https://developer.arm.com/-/media/Files/downloads/gnu-rm/9-2019q4/RC2.1/gcc-arm-none-eabi-9-2019-q4-major-x86_64-linux.tar.bz2?revision=6e63531f-8cb1-40b9-bbfc-8a57cdfc01b4&la=en&hash=F761343D43A0587E8AC0925B723C04DBFB848339
-        ln -s gcc-arm-none-eabi-9-2019-q4-major-x86_64-linux.tar.bz2 gcc-arm-none-eabi.tar.bz2 
+    if ! [ -f "./gcc-arm-none-eabi.tar.bz2" ]; then
 
-    elif [[ $arch == i*86 ]]; then
-        echo "X32 Architecture"
-        curl -o gcc-arm-none-eabi-9-2019-q4-major-x86_64-linux.tar.bz2 https://developer.arm.com/-/media/Files/downloads/gnu-rm/9-2019q4/RC2.1/gcc-arm-none-eabi-9-2019-q4-major-x86_64-linux.tar.bz2?revision=6e63531f-8cb1-40b9-bbfc-8a57cdfc01b4&la=en&hash=F761343D43A0587E8AC0925B723C04DBFB848339
-        ln -s gcc-arm-none-eabi-9-2019-q4-major-x86_64-linux.tar.bz2 gcc-arm-none-eabi.tar.bz2 
+        echo 'Fetching gcc-arm-none-eabi'
+        arch=$(uname -m)
 
-    elif  [[ $arch == arm* ]]; then
-        echo "ARM Architecture"
-        curl -o gcc-arm-none-eabi-9-2019-q4-major-aarch64-linux.tar.bz2 https://developer.arm.com/-/media/Files/downloads/gnu-rm/9-2019q4/RC2.1/gcc-arm-none-eabi-9-2019-q4-major-aarch64-linux.tar.bz2?revision=490085f7-6fa7-49d0-b860-f437916e05eb&la=en&hash=568E0D184DE11F1FE02538BABB850CA41BC7C1CD
-        ln -s gcc-arm-none-eabi-9-2019-q4-major-aarch64-linux.tar.bz2 gcc-arm-none-eabi.tar.bz2 
+        if [[ $arch == x86_64* ]]; then
+            echo "X64 Architecture"
+            curl -L -o gcc-arm-none-eabi-9-2019-q4-major-x86_64-linux.tar.bz2 https://developer.arm.com/-/media/Files/downloads/gnu-rm/9-2019q4/RC2.1/gcc-arm-none-eabi-9-2019-q4-major-x86_64-linux.tar.bz2?revision=6e63531f-8cb1-40b9-bbfc-8a57cdfc01b4&la=en&hash=F761343D43A0587E8AC0925B723C04DBFB848339
+            ln -s gcc-arm-none-eabi-9-2019-q4-major-x86_64-linux.tar.bz2 gcc-arm-none-eabi.tar.bz2 
 
+        elif [[ $arch == i*86 ]]; then
+            echo "X32 Architecture"
+            curl -L -o gcc-arm-none-eabi-9-2019-q4-major-x86_64-linux.tar.bz2 https://developer.arm.com/-/media/Files/downloads/gnu-rm/9-2019q4/RC2.1/gcc-arm-none-eabi-9-2019-q4-major-x86_64-linux.tar.bz2?revision=6e63531f-8cb1-40b9-bbfc-8a57cdfc01b4&la=en&hash=F761343D43A0587E8AC0925B723C04DBFB848339
+            ln -s gcc-arm-none-eabi-9-2019-q4-major-x86_64-linux.tar.bz2 gcc-arm-none-eabi.tar.bz2 
+
+        elif  [[ $arch == arm* ]]; then
+            echo "ARM Architecture"
+            curl -L -o gcc-arm-none-eabi-9-2019-q4-major-aarch64-linux.tar.bz2 https://developer.arm.com/-/media/Files/downloads/gnu-rm/9-2019q4/RC2.1/gcc-arm-none-eabi-9-2019-q4-major-aarch64-linux.tar.bz2?revision=490085f7-6fa7-49d0-b860-f437916e05eb&la=en&hash=568E0D184DE11F1FE02538BABB850CA41BC7C1CD
+            ln -s gcc-arm-none-eabi-9-2019-q4-major-aarch64-linux.tar.bz2 gcc-arm-none-eabi.tar.bz2 
+
+        fi
+
+    else echo 'Found gcc-arm-none-eabi.tar.bz2 skipping download'
     fi
 
-    mkdir ./gcc-arm-none-eabi
-    tar -xjvf gcc-arm-none-eabi.tar.bz2 -C ./gcc-arm-none-eabi
+    echo 'Extracting gcc-arm-none-eabi. Please wait.'
+    rm -rf gcc-arm-none-eabi
+    mkdir gcc-arm-none-eabi
+    pv gcc-arm-none-eabi.tar.bz2 | tar -xj --strip-components=1 -C ./gcc-arm-none-eabi
 
-    export PATH=$PATH:$PWD/gcc-arm-none-eabi/bin/
+    export PATH=$PATH:$PWD/gcc-arm-none-eabi/arm-none-eabi/bin/
 
-    build_path=$(PWD)
+    build_path=$PWD
+
     # Building the AudioMoth firmware
-
+    rm -rf ./AudioMoth-MSD
     git clone --recurse-submodules https://github.com/victorromeo/AudioMoth-MSD.git 
     cd AudioMoth-MSD
 
-    mkdir build-release
+    mkdir -p build-release
     cd build-release
     cmake -DCMAKE_BUILD_TYPE=Release ..
     make
-    cp ./AudioMoth-
+    # TODO copy firmware to firmware folder
 
     cd $build_path
 
     # Building AudioMoth flash
-
+    rm -rf ./Flash
     git clone https://github.com/OpenAcousticDevices/Flash.git
     cd Flash/src/non-windows/linux
     chmod 700 build.sh
@@ -74,6 +87,7 @@ then
     cd $build_path
 
     # Building AudioMoth USB HID Tool
+    rm -rf ./USB-HID-Tool
     git clone https://github.com/OpenAcousticDevices/USB-HID-Tool.git
     cd USB-HID-Tool/src/linux
     chmod 700 build.sh
