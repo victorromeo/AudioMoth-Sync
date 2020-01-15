@@ -1,9 +1,10 @@
 class configuration:
     am_swdio_pin = 20
     am_swclk_pin = 21
-    am_swo_pin = 22
-    am_rst_pin = 23
-    pir_pins = {24, 25}
+    am_swo_pin = 19
+    am_rst_pin = 16
+    am_pwr_pin = 26
+    pir_pins = {12, 13}
     am_mount_path = '/media/pi/Moth'
     root_path = '/home/pi/Documents/AudioMoth-Sync'
     local_audio_path = '{0}/capture/recordings'.format(root_path)
