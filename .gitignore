@@ -112,3 +112,6 @@ capture/recordings/*.*
 
 cron.*
 cron/
+
+archive
+archive/
