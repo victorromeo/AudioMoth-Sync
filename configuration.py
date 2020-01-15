@@ -17,5 +17,5 @@ class configuration:
     photo_count_on_motion = 5
     photo_count_delay_sec = 1
     ping_test_url = 'https://www.google.com'
-    device_name = ''
-    aws_bucket_name = ''
+    device_name = 'device001'
+    aws_bucket_name = 's3://factorem001'
