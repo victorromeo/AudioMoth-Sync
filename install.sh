@@ -1,5 +1,11 @@
 #!/bin/bash
 
+sudo apt-get update -y
+sudo apt-get upgrade -y
+sudo apt-get install python3 python3-pip -y
+sudo apt-get install wireless-tools -y
+sudo apt-get install pijuice-base -y
+
 # Check before continuing
 read -p "Modify Cron to support PiJuice (y/n)? " -n 1 -r
 echo    # (optional) move to a new line
@@ -45,4 +51,22 @@ then
     sudo udevadm control --reload
 
     echo 'rules.d updated'
+fi
+
+# Check before continuing
+read -p "Is the PiJuice connected (y/n)? " -n 1 -r
+echo    # (optional) move to a new line
+if [[ $REPLY =~ ^[Yy]$ ]]
+    echo 'PiJuice RTC clock not updated. Run again when connected.'
+then
+    printf -v date '%(%Y-%m-%d %H:%M:%S)T\n' -1
+    sudo date -s "'${date}'"
+    sudo hwclock -w
+
+    if cat /etc/rc.local | grep -q -w "sudo hwclock -s"
+        then echo "hwclock found. skipping."
+        else echo 'sudo hwclock -s' | sudo tee -a /etc/rc.local
+    fi
+
+    echo 'PiJuice RTC clock updated'
 fi

@@ -1,5 +1,4 @@
 gpiozero
 nose2
-pijuice
 requests
 shutil
