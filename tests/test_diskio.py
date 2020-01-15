@@ -23,5 +23,6 @@ class Test_DiskIO(unittest.TestCase):
 
         dio.create_folder(working_path)
         dio.sync_files(config.local_audio_path, working_path)
+        dio.list_files(working_path)
         dio.remove_files(working_path, "*.*")
         dio.remove_folder(working_path)
