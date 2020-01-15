@@ -9,3 +9,4 @@ import diskio
 import motion
 import network
 import shell
+import aws
