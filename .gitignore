@@ -102,3 +102,13 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+.Trash-1000
+.vscode
+
+capture/logs/activity.log
+capture/photos/*.*
+capture/recordings/*.*
+
+cron.*
+cron/
