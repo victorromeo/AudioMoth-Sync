@@ -42,7 +42,7 @@ mkdir -p $CWD/cron
 sudo crontab -l > $CWD/cron/$filename
 
 # Remove all AudioMoth entries
-sed '/update.sh/d' $CWD/cron/$filename > $CWD/cron/cron.txt
+sed '/system\/update\.sh/d' $CWD/cron/$filename > $CWD/cron/cron.txt
 
 # Run the update.sh script hourly, (git pull etc.) and log the results
 echo "@hourly cd $CWD && sh $CWD/system/update.sh >> $CWD/capture/logs/system.log" >> $CWD/cron/cron.txt
