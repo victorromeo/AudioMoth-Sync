@@ -21,11 +21,19 @@ then
 fi
 
 # Check before continuing
-read -p "Modify Cron to enable GIT updates (y/n)? " -n 1 -r
+read -p "Modify Cron to enable regular updates (y/n)? " -n 1 -r
 echo    # (optional) move to a new line
 if [[ $REPLY =~ ^[Yy]$ ]]
 then
     sh ./system/cron_update.sh -p $PWD
+fi
+
+# Check before continuing
+read -p "Modify Cron to enable regular AWS synchronization (y/n)? " -n 1 -r
+echo    # (optional) move to a new line
+if [[ $REPLY =~ ^[Yy]$ ]]
+then
+    sh ./system/cron_aws_sync.sh -p $PWD
 fi
 
 # Check before continuing
