@@ -17,30 +17,7 @@ read -p "Modify Cron to support PiJuice (y/n)? " -n 1 -r
 echo    # (optional) move to a new line
 if [[ $REPLY =~ ^[Yy]$ ]]
 then
-    DATE=$(date +%Y%m%d)
-    filename="cron.${DATE}-000.txt"
-    num=0
-    while [ -f $filename ]; do
-        num=$(( $num + 1 ))
-        filename="cron.${DATE}-${num}.txt"
-    done
-
-    # Get Cron for su
-    mkdir -p cron
-    sudo crontab -l > ./cron/$filename
-
-    # Remove all AudioMoth entries
-    sed '/AudioMoth/d' ./cron/$filename > ./cron/cron.txt
-
-    # Add new AudioMoth entries
-    echo "@reboot /usr/bin/python3 $PWD/system/wakeup.py >> $PWD/capture/logs/system.log" >> ./cron/cron.txt
-    echo "@reboot /usr/bin/python3 $PWD/system/shutdown.py >> $PWD/capture/logs/system.log" >> ./cron/cron.txt
-
-    # Install new CronTab for Sudo
-    sudo crontab ./cron/cron.txt
-    rm ./cron/cron.txt
-
-    echo 'Cron updated'
+    sh ./system/cron_pijuice.sh -p $PWD
 fi
 
 # Check before continuing
@@ -48,29 +25,7 @@ read -p "Modify Cron to enable GIT updates (y/n)? " -n 1 -r
 echo    # (optional) move to a new line
 if [[ $REPLY =~ ^[Yy]$ ]]
 then
-    DATE=$(date +%Y%m%d)
-    filename="cron.${DATE}-000.txt"
-    num=0
-    while [ -f $filename ]; do
-        num=$(( $num + 1 ))
-        filename="cron.${DATE}-${num}.txt"
-    done
-
-    # Get Cron for su
-    mkdir -p cron
-    sudo crontab -l > ./cron/$filename
-
-    # Remove all AudioMoth entries
-    sed '/update.sh/d' ./cron/$filename > ./cron/cron.txt
-
-    # Add new GIT updates, to keep the local sync folder up to date
-    echo "@hourly cd $PWD && sh $PWD/system/update.sh >> $PWD/capture/logs/system.log" >> ./cron/cron.txt
-
-    # Install new CronTab for Sudo
-    sudo crontab ./cron/cron.txt
-    rm ./cron/cron.txt
-
-    echo 'Cron updated'
+    sh ./system/cron_update.sh -p $PWD
 fi
 
 # Check before continuing
