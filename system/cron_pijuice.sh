@@ -23,7 +23,7 @@ p) CWD=${OPTARG};;
 esac
 done
 
-if [[ -z $CWD ]]
+if [ -z $CWD ]
 then
      usage
      exit 1
