@@ -26,15 +26,31 @@ path_to_watch = "/dev"
 class audiomoth:
 
     def __init__(self, swdio:int = config.am_swdio_pin, rst:int = config.am_rst_pin, swo:int = config.am_swo_pin, clk: int = config.am_swclk_pin, pwr:int = config.am_pwr_pin):
-        self.swdio = iodevice(swdio,iostate.Float)
-        self.rst = iodevice(rst,iostate.Float)
-        self.swo = iodevice(swo,iostate.Float)
-        self.clk = iodevice(clk,iostate.Float)
-        self.pwr = iodevice(pwr, iostate.Input, None, False)
+        self.swdio_pin = swdio
+        self.rst_pin = rst
+        self.swo_pin = swo 
+        self.clk_pin = clk
+        self.pwr_pin = pwr
 
         self.mount_path = None
         self.device_name = None
         self.device_path = None
+
+    def __enter__(self):
+        self.swdio = iodevice(self.swdio_pin,iostate.Float)
+        self.rst = iodevice(self.rst_pin,iostate.Float)
+        self.swo = iodevice(self.swo_pin,iostate.Float)
+        self.clk = iodevice(self.clk_pin,iostate.Float)
+        self.pwr = iodevice(self.pwr_pin,iostate.Input, None, False)
+
+        return self
+
+    def __exit__(self, exception_type, exception_value, traceback):
+        self.pwr.close()
+        self.clk.close()
+        self.swo.close()
+        self.rst.close()
+        self.swdio.close()
 
     def detectMoth(self) -> bool:
         return bool(self.pwr.value())
