@@ -42,7 +42,7 @@ BUCKET=$(cat "${CWD}"/bucket);
 
 # Fetch the device name
 DEVICE=$(uname -n);
-cat "${DEVICE}" > "${CWD}"/device
+echo "${DEVICE}" > "${CWD}"/device
 
 # Update the CRON tasks
 echo 'Updating CRON tasks'
