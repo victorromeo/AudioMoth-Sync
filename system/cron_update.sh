@@ -29,26 +29,28 @@ then
      exit 1
 fi
 
+# Create a Cron backup store
+mkdir -p $CWD/cron
+
 DATE=$(date +%Y%m%d)
-filename="cron.${DATE}-000.txt"
+filename="cron.${DATE}-00000.txt"
 num=0
-while [ -f $filename ]; do
+while [ -f $CWD/cron/$filename ]; do
     num=$(( $num + 1 ))
-    filename="cron.${DATE}-${num}.txt"
+    filename=$(printf "cron.%s-%05d.txt" $DATE $num)
 done
 
 # Get Cron for su
-mkdir -p $CWD/cron
 sudo crontab -l > $CWD/cron/$filename
+cat $CWD/cron/$filename > $CWD/cron/cron.txt
 
 # Remove all AudioMoth entries
-sed '/system\/update\.sh/d' $CWD/cron/$filename > $CWD/cron/cron.txt
+sed -i '/system\/update\.sh/d' $CWD/cron/cron.txt
 
 # Run the update.sh script hourly, (git pull etc.) and log the results
 echo "@hourly cd $CWD && sh $CWD/system/update.sh >> $CWD/capture/logs/system.log" >> $CWD/cron/cron.txt
 
 # Install new CronTab for Sudo
 sudo crontab $CWD/cron/cron.txt
-rm $CWD/cron/cron.txt
 
 echo 'Cron updated'
