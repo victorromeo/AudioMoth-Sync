@@ -1,5 +1,8 @@
 #!/bin/bash
 
+uname -n > device
+echo "$PWD" > root
+
 aws_region="ap-southeast-2"
 
 sudo apt-get update -y
