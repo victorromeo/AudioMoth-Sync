@@ -37,10 +37,17 @@ echo "$dt"
 echo 'Updating local git repository'
 git pull
 
+# Fetch the bucket name
+BUCKET=$(cat "${CWD}"/bucket);
+
+# Fetch the device name
+DEVICE=$(uname -n);
+cat "${DEVICE}" > "${CWD}"/device
+
 # Update the CRON tasks
 echo 'Updating CRON tasks'
-sh $CWD/system/cron_update.sh -p $CWD
-sh $CWD/system/cron_aws_sync.sh -p $CWD
-sh $CWD/system/cron_pijuice.sh -p $CWD
+sh "$CWD"/system/cron_update.sh -p "$CWD"
+sh "$CWD"/system/cron_aws_sync.sh -p "${CWD}" -d "${DEVICE}" -b "${BUCKET}"
+sh "$CWD"/system/cron_pijuice.sh -p "$CWD"
 
 echo 'Update Complete'

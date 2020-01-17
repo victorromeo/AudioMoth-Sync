@@ -8,10 +8,12 @@ This script installs a CRON task to perform regular AWS sync operations
 OPTIONS:
    -h                Show this message
    -p <root_path>    Path to AudioMoth-Sync root
+   -d <device_name>  Device Name
+   -b <bucket name>  Bucket Name
 EOF
 }
 
-while getopts hp: option
+while getopts hp:d:b: option
 do
 case "${option}"
 in
@@ -20,6 +22,8 @@ h)
     exit 1
     ;;
 p) CWD=${OPTARG};;
+d) DEVICE=${OPTARG};;
+b) BUCKET=${OPTARG};;
 esac
 done
 
@@ -48,7 +52,7 @@ cat $CWD/cron/$filename > $CWD/cron/cron.txt
 sed -i '/system\/aws_sync\.sh/d' $CWD/cron/cron.txt
 
 # Run the aws_sync.sh script hourly, (git pull etc.) and log the results
-echo "@hourly cd $CWD && sh $CWD/system/aws_sync.sh >> $CWD/capture/logs/system.log" >> $CWD/cron/cron.txt
+echo "@hourly cd $CWD && sh $CWD/system/aws_sync.sh -p $CWD -b $BUCKET -d $DEVICE >> $CWD/capture/logs/system.log" >> $CWD/cron/cron.txt
 
 # Install new CronTab for Sudo
 sudo crontab $CWD/cron/cron.txt

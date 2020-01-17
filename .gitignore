@@ -115,3 +115,10 @@ cron/
 
 archive
 archive/
+
+bucket
+device
+
+apps/flash
+apps/usbhidtool
+firmware/*.bin
