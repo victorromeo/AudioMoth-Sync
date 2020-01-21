@@ -10,7 +10,7 @@ now = datetime.datetime.now()
 
 activity_log = f'{app_dir}/capture/logs/activity.{now:%Y%m%d}.log'
 
-print(activity_log)
+# TODO Stop AudioMoth here
 
 with open(activity_log, 'a+') as l:
-    l.write(f'{now:%Y%m%d %H%M%S} "Shutdown" {app_dir}')
+    l.write(f'{now:%Y%m%d %H%M%S} "Shutdown" {app_dir}\n')
