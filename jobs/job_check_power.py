@@ -32,7 +32,7 @@ result = {
                 if pij.status.GetStatus()['error'] != 'COMMUNICATION_ERROR' \
                     and pij.config.GetIoConfiguration(1)['data']['mode'] == 'DIGITAL_IN' \
                         else None,
-            "digitalOutput" : pij.status.GetIoDigitalInput(1) \
+            "digitalOutput" : pij.status.GetIoDigitalOutput(1) \
                 if pij.status.GetStatus()['error'] != 'COMMUNICATION_ERROR' \
                     and pij.config.GetIoConfiguration(1)['data']['mode'] == 'DIGITAL_OUT' \
                         else None,
@@ -51,7 +51,7 @@ result = {
                 if pij.status.GetStatus()['error'] != 'COMMUNICATION_ERROR' \
                     and pij.config.GetIoConfiguration(2)['data']['mode'] == 'DIGITAL_IN' \
                         else None,
-            "digitalOutput" : pij.status.GetIoDigitalInput(2) \
+            "digitalOutput" : pij.status.GetIoDigitalOutput(2) \
                 if pij.status.GetStatus()['error'] != 'COMMUNICATION_ERROR' \
                     and pij.config.GetIoConfiguration(2)['data']['mode'] == 'DIGITAL_OUT' \
                         else None,
