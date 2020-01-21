@@ -1,14 +1,10 @@
+import os
+import socket
 
-def read(filename):
-    with open(filename, 'r') as f:
-        f.readline().strip()
-
-root = read('root')
-device = read('device')
-bucket = read('bucket') 
-
-if root is None:
-    root = '/home/pi/Documents/AudioMoth-Sync'
+script_dir = os.path.dirname(os.path.abspath(__file__))
+app_dir = os.path.dirname(script_dir)
+device = socket.gethostname()
+bucket = 'factorem001'
 
 class configuration:
     am_swdio_pin = 20
@@ -18,7 +14,7 @@ class configuration:
     am_pwr_pin = 26
     pir_pins = {12, 13}
     am_mount_path = '/media/pi/Moth'
-    root_path = root
+    root_path = app_dir
     local_audio_path = '{0}/capture/recordings'.format(root_path)
     local_visual_path = '{0}/capture/photos'.format(root_path)
     local_log_path = '{0}/capture/logs'.format(root_path)
