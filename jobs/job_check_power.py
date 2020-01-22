@@ -25,7 +25,7 @@ result = {
         "ioVoltage" : pij.status.GetIoVoltage(),
         "io1" : {
             "analogInput" : pij.status.GetIoAnalogInput(1) \
-                if pij.status.GetStatus()['error'] != 'COMMUNICATION_ERROR' \
+                if pij.config.GetIoConfiguration(1)['error'] != 'COMMUNICATION_ERROR' \
                     and pij.config.GetIoConfiguration(1)['data']['mode'] == 'ANALOG_IN' \
                         else None,
             "digitalInput" : pij.status.GetIoDigitalInput(1) \
@@ -38,8 +38,8 @@ result = {
                         else None,
             "ioPWM" : pij.status.GetIoPWM(1) \
                 if pij.status.GetStatus()['error'] != 'COMMUNICATION_ERROR' \
-                    and pij.config.GetIoConfiguration(1)['data']['mode'] == 'PWM_OUT_PUSHPULL' \
-                        or  pij.config.GetIoConfiguration(1)['data']['mode'] == 'PWM_OUT_OPEN_DRAIN' \
+                    and (pij.config.GetIoConfiguration(1)['data']['mode'] == 'PWM_OUT_PUSHPULL' \
+                        or pij.config.GetIoConfiguration(1)['data']['mode'] == 'PWM_OUT_OPEN_DRAIN') \
                         else None,
         },
         "io2" : {
@@ -57,8 +57,8 @@ result = {
                         else None,
             "ioPWM" : pij.status.GetIoPWM(2) \
                 if pij.status.GetStatus()['error'] != 'COMMUNICATION_ERROR' \
-                    and pij.config.GetIoConfiguration(2)['data']['mode'] == 'PWM_OUT_PUSHPULL' \
-                        or  pij.config.GetIoConfiguration(2)['data']['mode'] == 'PWM_OUT_OPEN_DRAIN' \
+                    and (pij.config.GetIoConfiguration(2)['data']['mode'] == 'PWM_OUT_PUSHPULL' \
+                        or  pij.config.GetIoConfiguration(2)['data']['mode'] == 'PWM_OUT_OPEN_DRAIN') \
                         else None,
         },
     },
@@ -81,3 +81,6 @@ result = {
 
 with open(activity_log, 'a+') as l:
     l.write(f'\n{now:%Y%m%d %H%M%S} "Check Battery" {app_dir} {result}\n')
+
+if __name__ == '__main__':
+    print(result)
