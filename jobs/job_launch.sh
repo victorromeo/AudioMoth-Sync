@@ -28,7 +28,7 @@ APP_PATH=$(dirname "${SCRIPT_PATH}"..)
 # Log the action
 DATE=$(date +"%Y%m%d")
 TIME=$(date +"%H%M%S")
-LOG="${APP_PATH}/capture/logs/activity.$DATE.log"
+LOG="${APP_PATH}/capture/logs/system.$DATE.log"
 echo "${DATE} ${TIME} \"Launch\" $APP_PATH" >> "$LOG"
 
 # Perform the action

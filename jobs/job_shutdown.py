@@ -8,7 +8,7 @@ app_dir = os.path.dirname(script_dir)
 
 now = datetime.datetime.now()
 
-activity_log = f'{app_dir}/capture/logs/activity.{now:%Y%m%d}.log'
+activity_log = f'{app_dir}/capture/logs/system.{now:%Y%m%d}.log'
 
 # TODO Stop AudioMoth here
 

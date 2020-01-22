@@ -10,7 +10,7 @@ app_dir = os.path.dirname(script_dir)
 
 now = datetime.datetime.now()
 
-activity_log = f'{app_dir}/capture/logs/activity.{now:%Y%m%d}.log'
+activity_log = f'{app_dir}/capture/logs/system.{now:%Y%m%d}.log'
 
 with open(activity_log, 'a+') as l:
     l.write(f'{now:%Y%m%d %H%M%S} "Startup" {app_dir}\n')

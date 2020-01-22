@@ -28,7 +28,7 @@ APP_PATH=$(dirname "${SCRIPT_PATH}"..)
 # Log the action
 DATE=$(date +"%Y%m%d")
 TIME=$(date +"%H%M%S")
-LOG="${APP_PATH}/capture/logs/activity.$DATE.log"
+LOG="${APP_PATH}/capture/logs/system.$DATE.log"
 echo "${DATE} ${TIME} \"Network Switch\" $APP_PATH" >> "$LOG"
 
 ping -c4 8.8.8.8 > /dev/null
