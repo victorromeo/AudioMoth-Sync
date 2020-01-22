@@ -85,5 +85,9 @@ else
     echo 'AWS already configured.'
 fi
 
+sudo mkdir -p /mnt/Moth
+sudo chown pi:pi /mnt/Moth
+sudo chmod 660 /mnt/Moth
+
 echo 'AudioMoth-Sync installation complete'
 

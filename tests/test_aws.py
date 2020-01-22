@@ -1,20 +1,20 @@
 import unittest
 from .context import aws as aws
-from .context import shell
-from configuration import configuration as config
+from lib.shell import output_shell
+from lib.config import cfg
 
 class TestAWS(unittest.TestCase):
 
     def _create_testfile(self):
-        _, success = shell.output_shell('touch ./tmp/testfile')
+        _, success = output_shell('touch ./tmp/testfile')
         self.assertTrue(success)
 
     def _remove_testfile(self):
-        _, success = shell.output_shell('rm ./tmp/testfile')
+        _, success = output_shell('rm ./tmp/testfile')
         self.assertTrue(success)
 
     def _remove_testpath(self):
-        _, success = shell.output_shell('rm -rf ./tmp')
+        _, success = output_shell('rm -rf ./tmp')
         self.assertTrue(success) 
 
     def test_00_prerequisites(self):
@@ -22,14 +22,14 @@ class TestAWS(unittest.TestCase):
         self._remove_testfile()
 
     def test_list(self):
-        a = aws.aws()
-        result, success = a.List(config.aws_bucket_name)
+        a = aws()
+        result, success = a.List(cfg.network.aws_bucket_name)
         self.assertTrue(success)
         self.assertIsNotNone(result)
 
     def test_copy(self):
-        a = aws.aws()
-        testfile_path_remote = '{0}/testfile'.format(config.aws_bucket_name)
+        a = aws()
+        testfile_path_remote = '{0}/testfile'.format(cfg.network.aws_bucket_name)
         testfile_path_local = './tmp/testfile'
         result, success = a.Copy(testfile_path_remote, testfile_path_local)
         self.assertTrue(success)

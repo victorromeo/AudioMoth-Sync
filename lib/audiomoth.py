@@ -20,7 +20,6 @@ from lib.shell import output_shell
 # Command to fetch the device name of the AudioMoth
 getMothDeviceNameCommand = "ls -la /dev/moth* | grep 'sd.[0-9]' | awk 'NF>1{print $NF}'"
 getMothMountPathCommand = "mount | grep -F '{0}' | cut -d \" \" -f 3"
-unmountCommand = "umount -l {0}"
 path_to_watch = "/dev"
 
 class audiomoth:
@@ -36,16 +35,13 @@ class audiomoth:
         self.device_name = None
         self.device_path = None
 
-    def __enter__(self):
         self.swdio = iodevice(self.swdio_pin,iostate.Float)
         self.rst = iodevice(self.rst_pin,iostate.Float)
         self.swo = iodevice(self.swo_pin,iostate.Float)
         self.clk = iodevice(self.clk_pin,iostate.Float)
         self.pwr = iodevice(self.pwr_pin,iostate.Input, None, False)
 
-        return self
-
-    def __exit__(self, exception_type, exception_value, traceback):
+    def __del__(self):
         self.pwr.close()
         self.clk.close()
         self.swo.close()
@@ -79,11 +75,12 @@ class audiomoth:
         detected = self.device_name is not None and len(self.device_name) > 3
 
         if detected:
-            print("AudioMoth device detected at {0}".format(self.device_path))
+            print(f"AudioMoth device {self.device_name} detected at {self.device_path}")
+            logging.debug(f"is_detected: {self.device_name} {self.device_path}")
         else:
             print("AudioMoth device not detected")
+            logging.debug(f"is_detected:-".format(detected))
 
-        logging.debug("is_detected:{0}".format(detected))
         return detected
 
     def is_mounted(self):
@@ -164,6 +161,11 @@ class audiomoth:
                 logging.error("mountMoth: failed to detect via reset")
                 raise Exception("Failed to detected device via reset")
 
+            # Mount the moth
+            r, e = output_shell(f'sudo mount -o rw,remount {self.device_path} {cfg.paths.audiomoth}')
+            #r, e = output_shell(f'mount {self.device_path} {cfg.paths.audiomoth}')
+            print(f'Mount {r} {e}')
+
             mounted = self.is_mounted()
             while not mounted and mTimeout > 0:
                 time.sleep(mPoll)
@@ -189,6 +191,11 @@ class audiomoth:
             if not detected:
                 logging.error("mountMoth: failed to detect moth")
                 raise Exception("Failed to detected device. Check AudioMoth is connected")
+
+        # Mount the moth
+        #r, e = output_shell(f'mount -o rw,remount {self.device_path} {cfg.paths.audiomoth}')
+        r, e = output_shell(f'sudo mount {self.device_path} {cfg.paths.audiomoth}')
+        print(f'Mount {r} {e}')
 
         while not mounted and mTimeout > 0:
             time.sleep(mPoll)
@@ -222,9 +229,11 @@ class audiomoth:
             print("Moth currently mounted")
 
             # Umount the filesystem mount point (Lazily)
-            command = unmountCommand.format(self.device_path)
+            command = f'sudo umount -l {self.device_path}'
+
             print(command)
-            output_shell(command)
+            r,e = output_shell(command)
+            print(f'Unmount {r} {e}')
             time.sleep(10)
 
             # Report failure

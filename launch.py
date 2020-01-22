@@ -80,12 +80,12 @@ def enqueue(io):
         q.pop(0)
 
 def motion():
-    return not (len(q) == cfg.motion.motion_queue_length \
-        and mean(q) < cfg.motion.motion_threshold_inactive)
+    return len(q) < cfg.motion.motion_queue_length \
+        or mean(q) > cfg.motion.motion_threshold_inactive
 
 def movement():
     m = int(pij.status.GetIoDigitalInput(2)['data'])
-    print(m, end='')
+    print(m, end='', flush=True)
     return m
 
 # Configure
@@ -100,7 +100,6 @@ while True:
         # Detect when motion stops
         enqueue(movement())
         while motion():
-            sleep(1)
             enqueue(movement())
 
         on_no_motion()

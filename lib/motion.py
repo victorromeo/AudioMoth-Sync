@@ -9,8 +9,8 @@ class motion:
     latest_motion = time()
     motion_detected = False
 
-    when_motion = nothing
-    when_no_motion = nothing
+    when_motion = None
+    when_no_motion = None
 
     def __init__(self):
 

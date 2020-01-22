@@ -69,9 +69,10 @@ class diskio:
         
         return success
 
-    def remove_files(self, path:str, pattern:str = "*.WAV"):
-        logging.info("Removing files from '{0}/{1}'".format(path, pattern))
-        removeMothFilesCommand = "rm {0}/{1}".format(path, pattern)
+    def remove_files(self, path:str, pattern:str = "*.WAV", sudo:bool = False):
+        logging.info(f"Removing files from '{path}/{pattern}'")
+        actor = 'sudo ' if sudo else ''
+        removeMothFilesCommand = f"{actor}rm {path}/{pattern}"
         _, success = output_shell(removeMothFilesCommand)
 
         if success:
@@ -81,7 +82,9 @@ class diskio:
 
     def transfer_audio(self, moth_mount_path:str, audio_path:str):
 
-        if self.list_files(moth_mount_path) and self.sync_files(moth_mount_path, audio_path) and self.remove_files(moth_mount_path):
+        if self.list_files(moth_mount_path) \
+            and self.sync_files(moth_mount_path, audio_path) \
+                and self.remove_files(moth_mount_path, pattern = '*.WAV', sudo = True):
             logging.info("Transfer complete")
         else:
             logging.warning("Transfer failed")

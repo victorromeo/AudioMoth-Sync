@@ -9,7 +9,7 @@ def off():
 
 class TestMotion(unittest.TestCase):
     def test_init(self):
-        m = motion.motion()
+        m = motion()
         m.when_motion = on
         m.when_no_motion = off
         self.assertIsNotNone(m)
