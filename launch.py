@@ -9,21 +9,16 @@ from signal import pause
 from time import sleep
 from threading import Thread, ThreadError
 from statistics import mean
+import pijuice
 
 from lib.log import logging
 from lib.audiomoth import audiomoth
 from lib.camera import camera
 from lib.diskio import diskio
-
-from configuration import configuration as config
-
-cfg = config
-print(cfg)
-
-exit()
+from lib.config import cfg
 
 c = camera()
-am = audiomoth(config.am_swdio_pin, config.am_rst_pin, config.am_swo_pin, config.am_swclk_pin)
+am = audiomoth()
 d = diskio()
 pij = pijuice.PiJuice()
 q = []
@@ -62,7 +57,7 @@ def on_motion():
     logging.info("on_motion")
     print("Recording starting")
     x = Thread(target=am.unmountMoth, args=())
-    y = Thread(target=c.click, args=(config.photo_count_on_motion, config.photo_count_delay_sec))
+    y = Thread(target=c.click, args=(cfg.camera.photo_count, cfg.camera.photo_delay_sec))
     x.start()
     y.start()
     x.join()
@@ -77,31 +72,49 @@ def on_no_motion():
     x.start()
     x.join()
     print("Recording stopped")
-    d.transfer_audio(config.am_mount_path, config.local_audio_path)
+    d.transfer_audio(cfg.paths.audiomoth, cfg.paths.recordings)
 
 def enqueue(io):
     q.append(io)
-    if q.count > ql:
+    if len(q) > cfg.motion.motion_queue_length:
         q.pop(0)
 
 def motion():
-    return not (q.count == ql and mean(q) < qr)
+    return not (len(q) == cfg.motion.motion_queue_length \
+        and mean(q) < cfg.motion.motion_threshold_inactive)
+
+def movement():
+    m = int(pij.status.GetIoDigitalInput(2)['data'])
+    print(m, end='')
+    return m
 
 # Configure
 install_cron_jobs()
 
 # Main Loop
 while True:
-    movement = pij.status.GetIoDigitalInput(2)
-
-    if movement > 0:
+    if movement() > 0:
         on_motion()
         q.clear()
 
         # Detect when motion stops
-        enqueue(pij.status.GetIoDigitalInput(2))
+        enqueue(movement())
         while motion():
             sleep(1)
-            enqueue(pij.status.GetIoDigitalInput(2))
+            enqueue(movement())
 
         on_no_motion()
+
+    if cfg.reboot_required():
+        print('Rebooting')
+        logging.info('Rebooting')
+        am.unmountMoth()
+        cfg.reboot_clear()
+        os.system('sudo shutdown -r 1')
+    
+    if cfg.restart_required():
+        print('Restarting')
+        logging.info('Restarting')
+        am.unmountMoth()
+        cfg.restart_clear()
+        exit()
