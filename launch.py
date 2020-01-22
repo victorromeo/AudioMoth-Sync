@@ -43,6 +43,7 @@ def install_cron_job(tab:crontab.CronTab, command:str, comment:str):
 def install_cron_jobs():
     tab = crontab.CronTab(user=True)
 
+    install_cron_job(tab,f'{job_path()}/job_launch.sh','job0').minute.every(10)
     install_cron_job(tab,f'{job_path()}/job_git_pull.sh','job1').minute.every(10)
     install_cron_job(tab,f'{job_path()}/job_cleanup.sh','job2').hour.every(2)
     install_cron_job(tab,f'{job_path()}/job_check_power.py','job3').hour.every(1)
@@ -55,15 +56,18 @@ def install_cron_jobs():
 
 def on_motion():
     logging.info("on_motion")
-    print("Recording starting")
-    x = Thread(target=am.unmountMoth, args=())
-    y = Thread(target=c.click, args=(cfg.camera.photo_count, cfg.camera.photo_delay_sec))
-    x.start()
-    y.start()
-    x.join()
-    y.join()
-    print("Recording started")
-    sleep(30)
+    c.click(cfg.camera.photo_count, cfg.camera.photo_delay_sec)
+    sleep(5)
+
+    # print("Recording starting")
+    # x = Thread(target=am.unmountMoth, args=())
+    # y = Thread(target=c.click, args=(cfg.camera.photo_count, cfg.camera.photo_delay_sec))
+    # x.start()
+    # y.start()
+    # x.join()
+    # y.join()
+    # print("Recording started")
+    # sleep(30)
 
 def on_no_motion():
     logging.info("on_no_motion")
@@ -73,6 +77,12 @@ def on_no_motion():
     x.join()
     print("Recording stopped")
     d.transfer_audio(cfg.paths.audiomoth, cfg.paths.recordings)
+
+    print("Recording starting")
+    y = Thread(target=am.unmountMoth, args=())
+    y.start()
+    y.join()
+    print("Recording started")
 
 def enqueue(io):
     q.append(io)
@@ -90,6 +100,9 @@ def movement():
 
 # Configure
 install_cron_jobs()
+
+am.resetMoth()
+am.unmountMoth()
 
 # Main Loop
 while True:
@@ -117,3 +130,4 @@ while True:
         am.unmountMoth()
         cfg.restart_clear()
         exit()
+
