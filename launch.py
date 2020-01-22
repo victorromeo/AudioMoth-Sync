@@ -46,7 +46,7 @@ def install_cron_jobs():
     install_cron_job(tab,f'{job_path()}/job_launch.sh','job0').minute.every(10)
     install_cron_job(tab,f'{job_path()}/job_git_pull.sh','job1').minute.every(10)
     install_cron_job(tab,f'{job_path()}/job_cleanup.sh','job2').hour.every(2)
-    install_cron_job(tab,f'{job_path()}/job_check_power.py','job3').hour.every(1)
+    install_cron_job(tab,f'{job_path()}/job_check_power.py','job3').hour.every(30)
     install_cron_job(tab,f'{job_path()}/job_network_switch.sh','job4').minute.every(1)
     install_cron_job(tab,f'{job_path()}/job_reverse_ssh.sh','job5').hour.every(1)
     install_cron_job(tab,f'{job_path()}/job_send_heartbeat.py','job6').minute.every(1)
