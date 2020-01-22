@@ -1,5 +1,5 @@
 from subprocess import Popen, PIPE
-from log import logging
+from lib.log import logging
 
 def output_shell(line):
 
@@ -15,8 +15,8 @@ def output_shell(line):
     shell_command.wait()
 
     if shell_command.returncode != 0:
-        print("Shell command failed to execute:{0}".format(line))
-        logging.warning("Command failed: {0}".format(line))
+        print(f"Shell command failed to execute:{line}\n{err}")
+        logging.warning(f"Command failed: {line}")
         return None, False
 
     return str(output.decode("utf-8")), True

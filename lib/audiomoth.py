@@ -1,5 +1,5 @@
-from configuration import configuration as config
-from log import logging
+from lib.config import cfg
+from lib.log import logging
 
 # This operation requires that udev has a custom rule to create a symbolic link when the AudioMoth is detected
 # To Add the required udev rule, run the following command
@@ -8,14 +8,14 @@ from log import logging
 #      ACTION=="add", ATTRS{model}=="EFM32 MSD Device", SUBSYSTEMS=="scsi", SYMLINK+="moth%n"
 #
 
-from iostate import iostate
-from iodevice import iodevice 
+
 import time
 import os
-from shell import output_shell
 from datetime import datetime, timezone
 import math
-
+from lib.iostate import iostate
+from lib.iodevice import iodevice 
+from lib.shell import output_shell
 
 # Command to fetch the device name of the AudioMoth
 getMothDeviceNameCommand = "ls -la /dev/moth* | grep 'sd.[0-9]' | awk 'NF>1{print $NF}'"
@@ -25,12 +25,12 @@ path_to_watch = "/dev"
 
 class audiomoth:
 
-    def __init__(self, swdio:int = config.am_swdio_pin, rst:int = config.am_rst_pin, swo:int = config.am_swo_pin, clk: int = config.am_swclk_pin, pwr:int = config.am_pwr_pin):
-        self.swdio_pin = swdio
-        self.rst_pin = rst
-        self.swo_pin = swo 
-        self.clk_pin = clk
-        self.pwr_pin = pwr
+    def __init__(self):
+        self.swdio_pin = cfg.pins.swdio
+        self.rst_pin = cfg.pins.rst
+        self.swo_pin = cfg.pins.swo
+        self.clk_pin = cfg.pins.swclk
+        self.pwr_pin = cfg.pins.pwr
 
         self.mount_path = None
         self.device_name = None
@@ -142,7 +142,7 @@ class audiomoth:
             logging.debug("mountMoth: Already mounted")
             return
 
-        before = dict ([(f, None) for f in os.listdir (path_to_watch)])
+        #before = dict ([(f, None) for f in os.listdir (path_to_watch)])
 
         while (detected and not mounted):
 
@@ -216,7 +216,7 @@ class audiomoth:
             return
 
         # Get the folder content
-        before = dict ([(f, None) for f in os.listdir (path_to_watch)])
+        #before = dict ([(f, None) for f in os.listdir (path_to_watch)])
 
         if self.is_mounted():
             print("Moth currently mounted")

@@ -1,7 +1,7 @@
 import sys
 sys.path.append("..") # Adds higher directory to python modules path.
 
-from configuration import configuration as config
+from lib.config import cfg
 
 import os
 from datetime import datetime

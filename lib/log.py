@@ -1,11 +1,12 @@
 import sys
 sys.path.append("..") # Adds higher directory to python modules path.
 
-from configuration import configuration as config
 import logging
 import logging.handlers
 import os
- 
+import re
+from lib.config import cfg
+
 class OneLineExceptionFormatter(logging.Formatter):
     def formatException(self, exc_info):
         result = super().formatException(exc_info)
@@ -17,15 +18,24 @@ class OneLineExceptionFormatter(logging.Formatter):
             result = result.replace("\n", "")
         return result
 
-logfile = '{0}/activity.log'.format(config.local_log_path)
+#with open(cfg.log_file(), "a+") as f:
+#    f.write('')
 
-if not os.path.exists(logfile):
-    with open(logfile, "a+") as f:
-        f.write('')
+logger = logging.getLogger()
+logger.setLevel(os.environ.get("LOGLEVEL", "INFO"))
 
-handler = logging.handlers.WatchedFileHandler(os.environ.get("LOGFILE", "capture/logs/activity.log"))
-formatter = OneLineExceptionFormatter('%(asctime)s %(levelname)s %(message)s')
+log_format = "%(asctime)s - %(levelname)s - %(message)s"
+log_level = 10
+handler = logging.handlers.TimedRotatingFileHandler(f'{cfg.paths.logs}/activity', when="midnight", interval=1)
+handler.setLevel(log_level)
+formatter = logging.Formatter(log_format)
 handler.setFormatter(formatter)
-root = logging.getLogger()
-root.setLevel(os.environ.get("LOGLEVEL", "INFO"))
-root.addHandler(handler)
+
+# add a suffix which you want
+handler.suffix = "%Y%m%d"
+
+#need to change the extMatch variable to match the suffix for it
+handler.extMatch = re.compile(r"^\d{8}$") 
+
+# finally add handler to logger    
+logger.addHandler(handler)

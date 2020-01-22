@@ -1,6 +1,5 @@
-from configuration import configuration as config
-import logging
-logging.basicConfig(filename='capture/logs/activity.log', level=logging.DEBUG, format='%(asctime)s %(levelname)s %(message)s')
+from lib.config import cfg
+from lib.log import logging
 
 import shutil
 import sys
@@ -21,7 +20,7 @@ class diskio:
             print("Free:  %d MB" % (free // (2**20)))
             print("Avail: %0.2f %%" % (free / total))
 
-        if ((free / total) < config.min_disk_percent or (free < config.min_disk_mb)):
+        if ((free / total) < cfg.health.min_disk_percent or (free < cfg.health.min_disk_mb)):
             print("Insufficient disk space remaining")
             logging.error("Insufficient disk space remaining %d %d", free, total)
             sys.exit()
