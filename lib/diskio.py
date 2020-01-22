@@ -1,9 +1,8 @@
-from lib.config import cfg
-from lib.log import logging
-
 import shutil
 import sys
-from shell import output_shell
+from lib.config import cfg
+from lib.log import logging
+from lib.shell import output_shell
 
 class diskio:
     def check_disk(self, report = True, display = True):
