@@ -35,5 +35,6 @@ echo "${DATE} ${TIME} \"AWS Sync\" $APP_PATH" >> "$LOG"
 aws s3 sync $APP_PATH/capture/logs "s3://factorem001/devices/${HOSTNAME}/capture/logs"
 aws s3 sync $APP_PATH/capture/photos "s3://factorem001/devices/${HOSTNAME}/capture/photos"
 aws s3 sync $APP_PATH/capture/recordings "s3://factorem001/devices/${HOSTNAME}/capture/recordings"
+aws s3 sync "s3://factorem001/releases/" $APP_PATH/apps
 
 exit 0
