@@ -122,6 +122,7 @@ while True:
         logging.info('Rebooting')
         am.unmountMoth()
         cfg.reboot_clear()
+        cfg.stop_clear()
         os.system('sudo shutdown -r 1')
     
     if cfg.restart_required():
@@ -130,4 +131,15 @@ while True:
         am.unmountMoth()
         cfg.restart_clear()
         exit()
+    
+    while cfg.is_stop_required():
+        cfg.stop()
+        print('Paused', flush=True)
+        logging.info('Paused')
 
+        while cfg.is_stop_required():
+            sleep(1)
+
+        cfg.stop_clear()
+        logging.info('Resumed')
+        print('Resumed', flush=True)

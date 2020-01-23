@@ -290,34 +290,139 @@ class audiomoth:
         return datetime.fromtimestamp(timestamp)
 
     def setTime(self):
-        buffer = [0x00, 0x02, 0x00, 0x00, 0x00, 0x00]
-        self.dateToBuffer(buffer, 2, datetime.now(timezone.utc))
-        setTimeCommand = "./apps/usbhidtool 0x10C4 0x0002 {0}".format(''.join('0x{:02x} '.format(a) for a in buffer))
-        print(setTimeCommand)
-        result, success = output_shell(setTimeCommand)
-        if (success):
-            print(result)
+        try:
+            success, _ = self.hid_on()
 
-        logging.info("setTime {0}:{1}".format(setTimeCommand, result))
+            if success:
+                buffer = [0x00, 0x02, 0x00, 0x00, 0x00, 0x00]
+                self.dateToBuffer(buffer, 2, datetime.now(timezone.utc))
+                setTimeCommand = "./apps/usbhidtool 0x10C4 0x0002 {0}".format(''.join('0x{:02x} '.format(a) for a in buffer))
+                print(setTimeCommand)
+                result, success = output_shell(setTimeCommand)
+                if (success):
+                    print(result)
+
+                logging.info("setTime {0}:{1}".format(setTimeCommand, result))
+                print('Set time success.')
+            else:
+                print('Set time failed. USB HID not enabled.')
+        except:
+            print('Set time failed. Unexpected error')
+        finally:
+            self.hid_off()
+
         return success
 
     def getTime(self):
-        buffer = [0x00, 0x01]
-        
-        getTimeCommand = "./apps/usbhidtool 0x10C4 0x0002 {0}".format(''.join('0x{:02x} '.format(a) for a in buffer))
-        result, success = output_shell(getTimeCommand)
-        logging.info("getTime {0}:{1}".format(getTimeCommand, result))
-        if success and result != 'NULL':
-            print(result)
-            hexValues = result.split(' ')
+        try:
+            success, _ = self.hid_on()
 
-            if hexValues[0] == 'NULL\n':
-                return False, None
+            if success:
+                buffer = [0x00, 0x01]
+                
+                getTimeCommand = "./apps/usbhidtool 0x10C4 0x0002 {0}".format(''.join('0x{:02x} '.format(a) for a in buffer))
+                result, success = output_shell(getTimeCommand)
+                logging.info("getTime {0}:{1}".format(getTimeCommand, result))
+                if success and result != 'NULL':
+                    print(result)
+                    hexValues = result.split(' ')
 
-            for hexValue in hexValues:
-                buffer.append(int(hexValue, 16))
+                    if hexValues[0] == 'NULL\n':
+                        return False, None
 
-        mothDate = self.bufferToDate(buffer, 3)
-        print("{0}".format(mothDate))
+                    for hexValue in hexValues:
+                        buffer.append(int(hexValue, 16))
+
+                mothDate = self.bufferToDate(buffer, 3)
+                print("{0}".format(mothDate))
+        except:
+            print('Set time failed. Unexpected error')
+            logging.warn("getTime failed due to unexpected error")
+        finally:
+            self.hid_off()
 
         return success, mothDate
+
+    def hid_on(self):
+        try:
+            # Pull the clock high to enable the USB interface
+            self.clk.outputMode()
+            self.clk.high()
+
+            self.resetMoth()
+            for i in range(5, 1):
+                time.sleep(1)
+                print(i, flush=True)
+
+            dTimeout = 30
+            dPoll = 1
+
+            print('d')
+            r,_ = output_shell(f'{cfg.paths.root}/apps/flash ')
+            print(r)
+
+            while not r.startswith('/dev/tty') and dTimeout > 0:
+                time.sleep(dPoll)
+                print('d')
+                r,_ = output_shell(f'{cfg.paths.root}/apps/flash')
+                dTimeout -= dPoll
+                print('.')
+
+            if dTimeout <=0:
+                print(f'Failed to find Moth: {r}')
+        except:
+            print('Error occurred while enabling USB HID')
+        finally:
+            self.clk.low()
+        return True, r.strip()
+
+    def hid_off(self):
+        self.clk.low()
+        self.resetMoth()
+
+    def flash(self):
+        try:
+            success, serial_path = self.hid_on()
+            if not success:
+                print('Flash failed. HID not enabled')
+                raise EnvironmentError('HID not enabled')
+
+            r, success = output_shell(f'{cfg.paths.root}/apps/flash -i {serial_path}')
+            i_max = 5
+            
+            for i in range(1, i_max):
+                if success: 
+                    serial_number = r.strip()
+                    print(f'{serial_number}')
+                    break
+                else:
+                    print(f'Attempt {i} - Failed getting serial {r}')
+                    print('n')
+                    r, success = output_shell(f'{cfg.paths.root}/apps/flash -i {serial_path}')
+                    time.sleep(1)
+            
+            flash_image = f'{cfg.paths.root}/apps/AudioMoth-Project.bin'
+            
+            if success and os.path.exists(flash_image):
+                
+                print(f'Flashing {serial_path} ({serial_number}) with {flash_image}')
+                for i in range(1, i_max):
+                    print('f')
+                    r, success = output_shell(f'{cfg.paths.root}/apps/flash -u {serial_path} {flash_image}')
+
+                    if success and not r.startswith('ERROR'): 
+                        print(f'Flashed: {r}')
+                        break
+                    else:
+                        print(f'Attempt {i} - Failed flash {r}')
+                        r, success = output_shell(f'{cfg.paths.root}/apps/flash -u {serial_path} {flash_image}')
+                        time.sleep(1)
+                
+                if not success:
+                    print('Flashing failed. Exhausted max attempts.')
+
+        except Exception:
+            print('Flashing failed. Unexpected error')
+        finally:
+            self.hid_off()
+
