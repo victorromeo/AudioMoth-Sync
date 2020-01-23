@@ -1,0 +1,11 @@
+ */10 * * * * /home/pi/Documents/AudioMoth-Sync/jobs/job_launch.sh >> "/home/pi/Documents/AudioMoth-Sync/capture/system.$(date +%Y-%m-%d_%H:%M).log" 2>&1 # job0
+ */10 * * * * /home/pi/Documents/AudioMoth-Sync/jobs/job_git_pull.sh >> "/home/pi/Documents/AudioMoth-Sync/capture/system.$(date +%Y-%m-%d_%H:%M).log" 2>&1 # job1
+ * */2 * * * /home/pi/Documents/AudioMoth-Sync/jobs/job_cleanup.sh >> "/home/pi/Documents/AudioMoth-Sync/capture/system.$(date +%Y-%m-%d_%H:%M).log" 2>&1 # job2
+ */30 * * * * /home/pi/Documents/AudioMoth-Sync/jobs/job_check_power.py >> "/home/pi/Documents/AudioMoth-Sync/capture/system.$(date +%Y-%m-%d_%H:%M).log" 2>&1 # job3
+ * * * * * /home/pi/Documents/AudioMoth-Sync/jobs/job_network_switch.sh >> "/home/pi/Documents/AudioMoth-Sync/capture/system.$(date +%Y-%m-%d_%H:%M).log" 2>&1 # job4
+ * * * * * /home/pi/Documents/AudioMoth-Sync/jobs/job_reverse_ssh.sh 2>> "/home/pi/Documents/AudioMoth-Sync/capture/system.$(date +%Y-%m-%d_%H:%M).log" # job5
+ # * * * * * /home/pi/Documents/AudioMoth-Sync/jobs/job_send_heartbeat.py >> "/home/pi/Documents/AudioMoth-Sync/capture/system.$(date +%Y-%m-%d_%H:%M).log" 2>&1 # job6
+ */15 * * * * /home/pi/Documents/AudioMoth-Sync/jobs/job_sync_aws.sh >> "/home/pi/Documents/AudioMoth-Sync/capture/system.$(date +%Y-%m-%d_%H:%M).log" 2>&1 # job7
+ @reboot /home/pi/Documents/AudioMoth-Sync/jobs/job_startup.sh >> "/home/pi/Documents/AudioMoth-Sync/capture/system.$(date +%Y-%m-%d_%H:%M).log" 2>&1 # job8
+ @reboot /home/pi/mjpg/mjpg-streamer/mjpg-streamer-experimental/start.sh >> "/home/pi/Documents/AudioMoth-Sync/capture/system.$(date +%Y-%m-%d_%H:%M).log" 2>&1 & # job9
+
