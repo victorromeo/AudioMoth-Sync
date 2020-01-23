@@ -11,15 +11,6 @@ class TestAudioMoth(unittest.TestCase):
         finally:
             am = None
 
-    def test_01_power(self):
-        try:
-            am = audiomoth()
-            self.assertEqual(am.detectMoth(),True)
-        except:
-            self.fail('Unexpected error')
-        finally:
-            am = None
-
     def test_reset(self):
         try:
             am = audiomoth()
