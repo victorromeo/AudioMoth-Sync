@@ -6,15 +6,15 @@ from lib.config import cfg
 class TestAWS(unittest.TestCase):
 
     def _create_testfile(self):
-        _, success = output_shell('touch ./tmp/testfile')
+        _, success = output_shell(f'touch {cfg.paths.root}/tmp/testfile')
         self.assertTrue(success)
 
     def _remove_testfile(self):
-        _, success = output_shell('rm ./tmp/testfile')
+        _, success = output_shell(f'rm -f {cfg.paths.root}/tmp/testfile')
         self.assertTrue(success)
 
     def _remove_testpath(self):
-        _, success = output_shell('rm -rf ./tmp')
+        _, success = output_shell(f'rm -rf {cfg.paths.root}/tmp/')
         self.assertTrue(success) 
 
     def test_00_prerequisites(self):
@@ -29,8 +29,8 @@ class TestAWS(unittest.TestCase):
 
     def test_copy(self):
         a = aws()
-        testfile_path_remote = '{0}/testfile'.format(cfg.network.aws_bucket_name)
-        testfile_path_local = './tmp/testfile'
+        testfile_path_remote = f'{cfg.network.aws_bucket_name}/testfile'
+        testfile_path_local = f'{cfg.paths.root}/tmp/testfile'
         result, success = a.Copy(testfile_path_remote, testfile_path_local)
         self.assertTrue(success)
         self.assertIsNotNone(result)
