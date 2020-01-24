@@ -16,6 +16,7 @@ from lib.audiomoth import audiomoth
 from lib.camera import camera
 from lib.diskio import diskio
 from lib.config import cfg
+from lib.event import event
 
 c = camera()
 am = audiomoth()
@@ -37,7 +38,7 @@ def install_cron_job(tab:crontab.CronTab, command:str, comment:str):
     for job in jobs_by_comment:
         if job.comment == comment:
             return job
-    
+
     return tab.new(command=command, comment=comment)
 
 def install_cron_jobs():
@@ -51,37 +52,37 @@ def install_cron_jobs():
     install_cron_job(tab,f'{job_path()}/job_reverse_ssh.sh','job5').hour.every(1)
     install_cron_job(tab,f'{job_path()}/job_send_heartbeat.py','job6').minute.every(1)
     install_cron_job(tab,f'{job_path()}/job_sync_aws.sh','job7').minute.every(15)
-    
+
     tab.write()
 
 def on_motion():
-    logging.info("on_motion")
-    c.click(cfg.camera.photo_count, cfg.camera.photo_delay_sec)
-    sleep(5)
+    # Creating a new event automatically logs it
+    e = event.create()
 
-    # print("Recording starting")
-    # x = Thread(target=am.unmountMoth, args=())
-    # y = Thread(target=c.click, args=(cfg.camera.photo_count, cfg.camera.photo_delay_sec))
-    # x.start()
-    # y.start()
-    # x.join()
-    # y.join()
-    # print("Recording started")
-    # sleep(30)
+    logging.info("on_motion")
+
+    min_recording_time = cfg.getOrAddInt('audio','min_recording_time', 60)
+
+    c.click(cfg.camera.photo_count, cfg.camera.photo_delay_sec)
+
+    sleep(min_recording_time if min_recording_time > 1 and min_recording_time < 3600 else 60)
 
 def on_no_motion():
     logging.info("on_no_motion")
+
     print("Recording stopping")
     x = Thread(target=am.mountMoth, args=())
     x.start()
     x.join()
-    print("Recording stopped")
+    print("Transferring audio")
+
     d.transfer_audio(cfg.paths.audiomoth, cfg.paths.recordings)
 
-    print("Recording starting")
+    print("Transferred audio")
     y = Thread(target=am.unmountMoth, args=())
     y.start()
     y.join()
+
     print("Recording started")
 
 def enqueue(io):
@@ -99,10 +100,33 @@ def movement():
     return m
 
 # Configure
-install_cron_jobs()
+# install_cron_jobs()
 
-am.resetMoth()
-am.unmountMoth()
+attempt=1
+max_attempt=3
+success=False
+while attempt < max_attempt and not success:
+    try:
+        am.resetMoth()
+        success = am.mountMoth()
+
+        # Clean up the AudioMoth to begin
+        d.remove_files(am.mount_path, pattern = "*.WAV", sudo = True)
+        d.check_disk(report = True, display = True, path = am.mount_path)
+
+        # Configure the AudioMoth for the next recording session
+        am.resetMoth()
+        am.setTime()
+
+        # Unmount to allow recording to commence
+        am.unmountMoth()
+        success = True
+    except:
+        print(f'Startup attempt {attempt} of {max_attempt} failed')
+
+if not success:
+    log.error('AudioMoth startup failed')
+    print('Please check AudioMoth')
 
 # Main Loop
 while True:
@@ -117,21 +141,21 @@ while True:
 
         on_no_motion()
 
-    if cfg.reboot_required():
+    if cfg.is_reboot_required():
         print('Rebooting')
         logging.info('Rebooting')
         am.unmountMoth()
         cfg.reboot_clear()
         cfg.stop_clear()
         os.system('sudo shutdown -r 1')
-    
-    if cfg.restart_required():
+
+    if cfg.is_restart_required():
         print('Restarting')
         logging.info('Restarting')
         am.unmountMoth()
         cfg.restart_clear()
         exit()
-    
+
     while cfg.is_stop_required():
         cfg.stop()
         print('Paused', flush=True)

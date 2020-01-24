@@ -5,19 +5,15 @@ from lib.log import logging
 from lib.shell import output_shell
 
 class diskio:
-    def check_disk(self, report = True, display = True):
-        total, used, free = shutil.disk_usage("/")
+    def check_disk(self, report = True, display = True, path:str = "/"):
+        total, used, free = shutil.disk_usage(path)
 
         if (report):
-            logging.debug("Disk Total:%d",total)
-            logging.debug("Disk Used:%d",used)
-            logging.debug("Disk Free:%d",free)
+            logging.info(f"Disk at {path} (Total:{total} Used:{used} Free:{free})")
 
         if (display):
-            print("Total: %d MB" % (total // (2**20)))
-            print("Used:  %d MB" % (used // (2**20)))
-            print("Free:  %d MB" % (free // (2**20)))
-            print("Avail: %0.2f %%" % (free / total))
+            gb = (2**20)
+            print(f"Disk at {path} (Total:{total // gb} Used:{used // gb} Free:{free // gb} Avail:{(free/total):.2f})")
 
         if ((free / total) < cfg.health.min_disk_percent or (free < cfg.health.min_disk_mb)):
             print("Insufficient disk space remaining")
@@ -58,7 +54,7 @@ class diskio:
             return False
 
         return success
-    
+
     def sync_files(self, from_path:str, to_path:str):
         logging.info("Transferring AudioMoth to Local")
         syncFilesCommand = "rsync -r {0}/ {1}".format(from_path, to_path)
@@ -66,7 +62,7 @@ class diskio:
 
         if success:
             logging.info("Transfer complete")
-        
+
         return success
 
     def remove_files(self, path:str, pattern:str = "*.WAV", sudo:bool = False):
@@ -77,7 +73,7 @@ class diskio:
 
         if success:
             logging.info("Removal complete")
-        
+
         return success
 
     def transfer_audio(self, moth_mount_path:str, audio_path:str):

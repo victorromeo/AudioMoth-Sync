@@ -78,7 +78,7 @@ class audiomoth:
             print(f"AudioMoth device {self.device_name} detected at {self.device_path}")
             logging.debug(f"is_detected: {self.device_name} {self.device_path}")
         else:
-            print("AudioMoth device not detected")
+            print("d", end= '', flush=True)
             logging.debug(f"is_detected:-".format(detected))
 
         return detected
@@ -91,19 +91,19 @@ class audiomoth:
         if mounted:
             print("AudioMoth device mounted at {0}".format(self.mount_path))
         else:
-            print("AudioMoth device not mounted")
+            print("m", end='', flush=True)
 
         logging.debug("is_mounted:{0}".format(mounted))
         return mounted
 
     def usbModeOn(self):
         self.swdio.outputMode()
-        self.swdio.low()
+        self.swdio.high()
         logging.debug("usbModeOn")
 
     def usbModeOff(self):
         self.swdio.outputMode()
-        self.swdio.high()
+        self.swdio.low()
         time.sleep(1)
 
         self.swdio.close()
@@ -139,6 +139,8 @@ class audiomoth:
             logging.debug("mountMoth: Already mounted")
             return
 
+        print('\nMounting AudioMoth')
+
         #before = dict ([(f, None) for f in os.listdir (path_to_watch)])
 
         while (detected and not mounted):
@@ -148,7 +150,7 @@ class audiomoth:
             self.resetMoth()
             time.sleep (5)
 
-            dTimeout = 30
+            dTimeout = 60
 
             detected = self.is_detected()
             while not detected and dTimeout > 0:
@@ -213,7 +215,7 @@ class audiomoth:
 
     def unmountMoth(self):
 
-        mTimeout = 30
+        mTimeout = 60
         mPoll    = 2
         dTimeout = 10
         dPoll    = 1
@@ -221,6 +223,8 @@ class audiomoth:
         if not self.is_detected():
             logging.warning("unmountMoth: not connected")
             return
+
+        print('\nUnmounting AudioMoth')
 
         # Get the folder content
         #before = dict ([(f, None) for f in os.listdir (path_to_watch)])
@@ -270,7 +274,7 @@ class audiomoth:
         self.device_name = None
         self.device_path = None
         self.mount_path = None
-    
+
     def dateToBuffer(self, buffer:[], offset, dateValue:datetime):
         timestamp = math.floor(dateValue.timestamp())
         print(timestamp)
@@ -281,7 +285,7 @@ class audiomoth:
 
     def bufferToDate(self, buffer, offset):
         timestamp = 0
-        
+
         if len(buffer) > 3:
             timestamp |= (int(buffer[offset]) & 0xff) | ((int(buffer[offset + 1]) & 0xff) << 8) | ((int(buffer[offset + 2]) & 0xff) << 16) | ((int(buffer[offset + 3]) & 0xff) << 24)
             print(timestamp)
@@ -319,7 +323,7 @@ class audiomoth:
 
             if success:
                 buffer = [0x00, 0x01]
-                
+
                 getTimeCommand = "./apps/usbhidtool 0x10C4 0x0002 {0}".format(''.join('0x{:02x} '.format(a) for a in buffer))
                 result, success = output_shell(getTimeCommand)
                 logging.info("getTime {0}:{1}".format(getTimeCommand, result))
@@ -389,9 +393,9 @@ class audiomoth:
 
             r, success = output_shell(f'{cfg.paths.root}/apps/flash -i {serial_path}')
             i_max = 5
-            
+
             for i in range(1, i_max):
-                if success: 
+                if success:
                     serial_number = r.strip()
                     print(f'{serial_number}')
                     break
@@ -400,11 +404,11 @@ class audiomoth:
                     print('n')
                     r, success = output_shell(f'{cfg.paths.root}/apps/flash -i {serial_path}')
                     time.sleep(1)
-            
+
             flash_image = f'{cfg.paths.root}/apps/AudioMoth-Project.bin'
-            
+
             if success and os.path.exists(flash_image):
-                
+
                 print(f'Flashing {serial_path} ({serial_number}) with {flash_image}')
                 for i in range(1, i_max):
                     print('f')
@@ -417,7 +421,7 @@ class audiomoth:
                         print(f'Attempt {i} - Failed flash {r}')
                         r, success = output_shell(f'{cfg.paths.root}/apps/flash -u {serial_path} {flash_image}')
                         time.sleep(1)
-                
+
                 if not success:
                     print('Flashing failed. Exhausted max attempts.')
 
