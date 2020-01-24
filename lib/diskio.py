@@ -3,6 +3,7 @@ import sys
 from lib.config import cfg
 from lib.log import logging
 from lib.shell import output_shell
+import os
 
 class diskio:
     def check_disk(self, report = True, display = True, path:str = "/"):
@@ -84,3 +85,10 @@ class diskio:
             logging.info("Transfer complete")
         else:
             logging.warning("Transfer failed")
+
+    def format_partition(self, moth_mount_path:str):
+
+        target_device= os.popen("lsblk -l -f | grep vfat | grep sd | grep Moth | awk \'{print $1}\'").read()
+
+        if moth_mount_path == f'/dev/{target_device}' and moth_mount_path.starts_with('/dev/sd'):
+            _, success = output_shell(f'sudo mkfs.vfat -F 32 {moth_mount_path}')
