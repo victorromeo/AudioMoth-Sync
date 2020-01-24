@@ -29,8 +29,8 @@ class camera:
             logging.warning("click: delay_ms out of range ({0})".format(delay_ms))
             return
 
-        with picamera.PiCamera() as camera:
-            camera.exif_tags['IFD0.Copyright'] = self.copyright.format(datetime.now().year())
+        with PiCamera() as camera:
+            camera.exif_tags['IFD0.Copyright'] = self.copyright.format(datetime.now().year)
             camera.exif_tags['IFD0.Artist'] = self.artist
             camera.exif_tags['EXIF.UserComment'] = '' if comment is None else comment.strip()
 

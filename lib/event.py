@@ -11,7 +11,6 @@ class event():
     when:datetime.datetime
     id:int
 
-
     @staticmethod
     def has_expired(i):
         global latest_event
@@ -29,14 +28,12 @@ class event():
     def __init__(self):
 
         local_time = datetime.datetime.now(datetime.timezone.utc).astimezone()
-        latest_event = e
-
         self.when = local_time
 
         self.id = cfg.getOrAddInt('event','next_id', 1)
-        cfg.update('event','next_id', event_id + 1)
+        cfg.update('event','next_id', self.id + 1)
 
-        with open(f'{cfg.paths.log}/event.log','a+') as events:
+        with open(f'{cfg.paths.logs}/event.log','a+') as events:
             events.write('{self.id} {when.isoformat()} {cfg.device_name}')
 
         latest_event = self
