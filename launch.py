@@ -57,7 +57,7 @@ def install_cron_jobs():
 
 def on_motion():
     # Creating a new event automatically logs it
-    e = event.create()
+    e = event()
 
     logging.info("on_motion")
 
@@ -105,7 +105,7 @@ def movement():
 attempt=1
 max_attempt=3
 success=False
-while attempt < max_attempt and not success:
+while attempt <= max_attempt and not success:
     try:
         am.resetMoth()
         success = am.mountMoth()
@@ -123,10 +123,12 @@ while attempt < max_attempt and not success:
         success = True
     except:
         print(f'Startup attempt {attempt} of {max_attempt} failed')
+        attempt = attempt + 1
 
 if not success:
-    log.error('AudioMoth startup failed')
+    logging.warning('AudioMoth startup failed')
     print('Please check AudioMoth')
+    exit()
 
 # Main Loop
 while True:
