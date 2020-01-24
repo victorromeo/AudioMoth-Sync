@@ -5,7 +5,10 @@ from lib.config import cfg
 from lib.log import logging
 
 class camera:
-    _camera = PiCamera()
+
+    def __init__(self):
+        self.copyright = cfg.getOrAdd('photo','copyright','Copyright (c) \{0\} Monash University')
+        self.artist = cfg.getOrAdd('photo','artist',cfg.name)
 
     def image_filename(self, image_path:str = None, now:datetime = None):
         if now == None:
@@ -14,9 +17,9 @@ class camera:
         if image_path == None:
             image_path = cfg.paths.photos
 
-        return "{0}/{1:04}{2:02}{3:02}_{4:02}{5:02}{6:02}.jpg".format(image_path,now.year,now.month,now.day,now.hour,now.minute,now.second)
+        return f"{now:%Y%m%d}_{now:%H%M%S}"
 
-    def click(self, count:int = 1, delay_ms:int = 0):
+    def click(self, count:int = 1, delay_ms:int = 0, comment = None):
 
         if count <= 0 or count > 100:
             logging.warning("click: count out of range ({0})".format(count))
@@ -26,10 +29,17 @@ class camera:
             logging.warning("click: delay_ms out of range ({0})".format(delay_ms))
             return
 
-        for c in range(count):
-            filename = self.image_filename()
-            self._camera.capture(filename)
-            logging.debug("click: {0}".format(filename))
+        with picamera.PiCamera() as camera:
+            camera.exif_tags['IFD0.Copyright'] = self.copyright.format(datetime.now().year())
+            camera.exif_tags['IFD0.Artist'] = self.artist
+            camera.exif_tags['EXIF.UserComment'] = '' if comment is None else comment.strip()
 
-            if delay_ms > 0:
-                sleep(delay_ms)
+            camera.resolution = (800, 600)
+            camera.start_preview()
+            now = datetime.datetime.now(datetime.timezone.utc).astimezone()
+            camera.start_recording(f'{cfg.paths.photos}/{now:%Y%m%d}_{now:%H%M%S}.h264')
+            camera.wait_recording(1)
+            for i in range(count):
+                camera.capture(f'{cfg.paths.photos}/{now:%Y%m%d}_{now:%H%M%S}.jpg', use_video_port=True)
+                camera.wait_recording(1000 * delay_ms)
+            camera.stop_recording()
