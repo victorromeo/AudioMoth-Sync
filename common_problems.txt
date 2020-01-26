@@ -1,0 +1,1 @@
+1) When AudioMoth is powered by batteries and the audio file size it creates are small, check the batteries.
