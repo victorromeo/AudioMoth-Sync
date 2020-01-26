@@ -26,7 +26,8 @@ class event():
         return diff.total_seconds() > expiry, diff.total_seconds - expiry
 
     def __init__(self):
-
+        
+        global latest_event
         local_time = datetime.datetime.now(datetime.timezone.utc).astimezone()
         self.when = local_time
 
@@ -34,6 +35,6 @@ class event():
         cfg.update('event','next_id', self.id + 1)
 
         with open(f'{cfg.paths.logs}/event.log','a+') as events:
-            events.write('{self.id} {when.isoformat()} {cfg.device_name}')
+            events.write(f'{self.id} {self.when.isoformat()} {cfg.name}\n')
 
         latest_event = self

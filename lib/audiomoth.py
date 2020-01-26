@@ -18,7 +18,7 @@ from lib.iodevice import iodevice
 from lib.shell import output_shell
 
 # Command to fetch the device name of the AudioMoth
-getMothDeviceNameCommand = "ls -la /dev/moth* | grep 'sd.[0-9]' | awk 'NF>1{print $NF}'"
+getMothDeviceNameCommand = "ls -l /dev/ | grep 'moth' | grep -E 'sd[a-z]+[0-9]' | awk 'NF>1{print $NF}'"
 getMothMountPathCommand = "mount | grep -F '{0}' | cut -d \" \" -f 3"
 path_to_watch = "/dev"
 
@@ -101,15 +101,12 @@ class audiomoth:
         return mounted
 
     def usbModeOn(self):
-        self.swdio.outputMode()
-        self.swdio.high()
+        self.swdio.outputMode(True)
+        self.clk.close()
+        self.rst.close()
         logging.debug("usbModeOn")
 
     def usbModeOff(self):
-        self.swdio.outputMode()
-        self.swdio.low()
-        time.sleep(1)
-
         self.swdio.close()
         logging.debug("usbModeOff")
 
@@ -119,10 +116,6 @@ class audiomoth:
         # Pulling the RST pin to ground forces the AudioMoth to restart
         self.rst.outputMode()
         self.rst.low()
-        time.sleep(1)
-
-        # Pulling up the RST pin before closing the output device ensures the pin doesn't stay low
-        self.rst.high()
         time.sleep(1)
 
         # Close the pin to allow RST to complete
@@ -145,13 +138,16 @@ class audiomoth:
 
         print('\nMounting AudioMoth')
 
+
+
+
+
         #before = dict ([(f, None) for f in os.listdir (path_to_watch)])
 
         while (detected and not mounted):
 
             # Pull the SWDIO pin low, so that when the AudioMoth has restarted, it will start in USB mode
             self.usbModeOn()
-            self.resetMoth()
             time.sleep (5)
 
             dTimeout = 60
@@ -172,15 +168,15 @@ class audiomoth:
             #r, e = output_shell(f'mount {self.device_path} {cfg.paths.audiomoth}')
             print(f'Mount {r} {e}')
 
-            mounted = self.is_mounted()
-            while not mounted and mTimeout > 0:
-                time.sleep(mPoll)
-                mounted = self.is_mounted()
-                mTimeout -= mPoll
+            # mounted = self.is_mounted()
+            # while not mounted and mTimeout > 0:
+            #     time.sleep(mPoll)
+            #     mounted = self.is_mounted()
+            #     mTimeout -= mPoll
 
-            if not mounted:
-                logging.error("mountMoth: failed to mount device via reset")
-                raise Exception("Failed to mount device via reset")
+            # if not mounted:
+            #     logging.error("mountMoth: failed to mount device via reset")
+            #     raise Exception("Failed to mount device via reset")
 
         if not detected:
             # Pull the SWDIO pin low, and wait to detect
@@ -265,7 +261,6 @@ class audiomoth:
         if self.is_detected():
             print("Moth failed to disable USB MSD within expected timeout (30s). Resetting")
             self.usbModeOff()
-            self.resetMoth()
             time.sleep(10)
 
         if self.is_detected():
@@ -357,7 +352,6 @@ class audiomoth:
             self.clk.outputMode()
             self.clk.high()
 
-            self.resetMoth()
             for i in range(5, 1):
                 time.sleep(1)
                 print(i, flush=True)
@@ -388,7 +382,6 @@ class audiomoth:
         self.clk.outputMode()
         self.clk.low()
         self.clk.close()
-        #self.resetMoth()
 
     def flash(self):
         try:

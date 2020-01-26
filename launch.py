@@ -115,8 +115,6 @@ while attempt <= max_attempt and not success:
         d.check_disk(report = True, display = True, path = am.mount_path)
 
         # Configure the AudioMoth for the next recording session
-        am.resetMoth()
-        sleep(1)
         am.usbModeOn()
         am.setTime()
 
