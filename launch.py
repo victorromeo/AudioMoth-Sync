@@ -116,6 +116,8 @@ while attempt <= max_attempt and not success:
 
         # Configure the AudioMoth for the next recording session
         am.resetMoth()
+        sleep(1)
+        am.usbModeOn()
         am.setTime()
 
         # Unmount to allow recording to commence

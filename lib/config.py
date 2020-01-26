@@ -161,6 +161,13 @@ class Config:
 
         return fallback
 
+    def addOrUpdate(self, section:str, option:str, value):
+        stored_value = self.getOrAdd(section,option,str(value))
+        if stored_value != value:
+            self.update(section, option, str(value))
+        
+        return value
+
     def getOrAddBool(self, section:str, option:str, fallback:bool):
         addSection = False
         addOption = False

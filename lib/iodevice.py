@@ -14,9 +14,20 @@ class iodevice:
         self.pull_up_in = pull_up_in
 
         if (mode == iostate.Input):
-            self.device = DigitalInputDevice(self.pin, pin_factory = self.pin_factory)
+            self.device = DigitalInputDevice(self.pin, pull_up = self.pull_up_in, pin_factory = self.pin_factory)
         elif (mode == iostate.Output):
             self.device = DigitalOutputDevice(self.pin, active_high = True, initial_value = self.current_value, pin_factory = self.pin_factory)
+
+    def state(self):
+        value = self.value()
+
+        mode = 'O' if self.mode == iostate.Output else 'I' if self.mode == iostate.Input else 'F'
+        val = '-' if self.mode == iostate.Float else '?' if value is None else '1' if value else '0'
+        resistor = ' ' if self.mode == iostate.Float or self.mode == iostate.Output \
+            else '-' if self.device.pull_up is None \
+                else 'u' if self.device.pull_up else 'd'
+
+        return f'({self.pin:2})={mode}{val}{resistor}'
 
     def value(self):
         if (self.mode == iostate.Output):

@@ -7,7 +7,7 @@ from lib.log import logging
 class camera:
 
     def __init__(self):
-        self.copyright = cfg.getOrAdd('photo','copyright','Copyright (c) \{0\} Monash University')
+        self.copyright = cfg.getOrAdd('photo','copyright','Copyright (c) {0} Monash University')
         self.artist = cfg.getOrAdd('photo','artist',cfg.name)
 
     def image_filename(self, image_path:str = None, now:datetime = None):
@@ -36,10 +36,10 @@ class camera:
 
             camera.resolution = (800, 600)
             camera.start_preview()
-            now = datetime.datetime.now(datetime.timezone.utc).astimezone()
+            now = datetime.now(timezone.utc).astimezone()
             camera.start_recording(f'{cfg.paths.photos}/{now:%Y%m%d}_{now:%H%M%S}.h264')
             camera.wait_recording(1)
             for i in range(count):
                 camera.capture(f'{cfg.paths.photos}/{now:%Y%m%d}_{now:%H%M%S}.jpg', use_video_port=True)
-                camera.wait_recording(1000 * delay_ms)
+                camera.wait_recording(delay_ms)
             camera.stop_recording()

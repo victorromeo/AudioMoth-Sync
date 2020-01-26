@@ -1,0 +1,24 @@
+
+
+
+VCC                          USBMSD
+                             |
+                             |
+                             /
+SWDIO-----------------------+
+                             \
+               HID (STOP)    |
+              /              | 
+SWCLK--------+ o o o o RUN   WAV (4k7 PULL DOWN)
+
+
+
+SWO     
+
+
+
+RST---+ o o o o RESUME (TIME LOSS)
+       \
+        |
+        |
+GND     FORCE RESTART ON RISING EDGE

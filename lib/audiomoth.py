@@ -48,6 +48,10 @@ class audiomoth:
         self.rst.close()
         self.swdio.close()
 
+    def state(self):
+        now = datetime.now(timezone.utc).astimezone()
+        print(f'{now:%Y%m%d}_{now:%H%M%S} SWDIO:{self.swdio.state()} SWCLK:{self.clk.state()} SWO:{self.swo.state()} RST:{self.rst.state()} PWR:{self.pwr.state()}')
+
     def detectMoth(self) -> bool:
         return bool(self.pwr.value())
 
@@ -381,8 +385,10 @@ class audiomoth:
         return True, r.strip()
 
     def hid_off(self):
+        self.clk.outputMode()
         self.clk.low()
-        self.resetMoth()
+        self.clk.close()
+        #self.resetMoth()
 
     def flash(self):
         try:
