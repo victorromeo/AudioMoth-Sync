@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+exit 0
+
 lockdir=/tmp/am_reverse_ssh.lock
 
 if mkdir "$lockdir"
@@ -29,7 +31,7 @@ APP_PATH=$(dirname "${SCRIPT_PATH}"..)
 DATE=$(date +"%Y%m%d")
 TIME=$(date +"%H%M%S")
 LOG="${APP_PATH}/capture/logs/system.$DATE.log"
-echo "${DATE} ${TIME} \"Reverse SSH\" $APP_PATH" >> "$LOG"
+echo "${DATE} ${TIME} \"Reverse SSH\" $SCRIPT_PATH" >> "$LOG"
 
 # Perform the action
 ssh -R 19999:localhost:22 ubuntu@agtech.factorem.com.au -i /home/pi/.ssh/AWS_MON_KP.pem

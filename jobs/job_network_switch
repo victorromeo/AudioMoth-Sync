@@ -29,7 +29,7 @@ APP_PATH=$(dirname "${SCRIPT_PATH}"..)
 DATE=$(date +"%Y%m%d")
 TIME=$(date +"%H%M%S")
 LOG="${APP_PATH}/capture/logs/system.$DATE.log"
-echo "${DATE} ${TIME} \"Network Switch\" $APP_PATH" >> "$LOG"
+echo "${DATE} ${TIME} \"Network Switch\" $SCRIPT_PATH" >> "$LOG"
 
 ping -c4 8.8.8.8 > /dev/null
  

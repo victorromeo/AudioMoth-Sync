@@ -29,12 +29,17 @@ APP_PATH=$(dirname "${SCRIPT_PATH}"..)
 DATE=$(date +"%Y%m%d")
 TIME=$(date +"%H%M%S")
 LOG="${APP_PATH}/capture/logs/system.$DATE.log"
-echo "${DATE} ${TIME} \"AWS Sync\" $APP_PATH" >> "$LOG"
+echo "${DATE} ${TIME} \"AWS Sync\" $SCRIPT_PATH" >> "$LOG"
 
 # Perform the action
-aws s3 sync $APP_PATH/capture/logs "s3://factorem001/devices/${HOSTNAME}/capture/logs"
-aws s3 sync $APP_PATH/capture/photos "s3://factorem001/devices/${HOSTNAME}/capture/photos"
-aws s3 sync $APP_PATH/capture/recordings "s3://factorem001/devices/${HOSTNAME}/capture/recordings"
+aws s3 sync $APP_PATH/capture/logs "s3://factorem001/devices/${HOSTNAME}/capture/logs/" --recursive
+
+# Move (not sync) to clean up straight away
+aws s3 mv $APP_PATH/capture/photos "s3://factorem001/devices/${HOSTNAME}/capture/photos/" --recursive
+aws s3 mv $APP_PATH/capture/recordings "s3://factorem001/devices/${HOSTNAME}/capture/recordings/" --recursive
+
+# Get the latest releases of the local apps
+# i.e. flash usbhidtool and AudioMoth-Project.bin firmware
 aws s3 sync "s3://factorem001/releases/" $APP_PATH/apps
 
 exit 0

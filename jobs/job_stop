@@ -29,7 +29,7 @@ APP_PATH=$(dirname "${SCRIPT_PATH}"..)
 DATE=$(date +"%Y%m%d")
 TIME=$(date +"%H%M%S")
 LOG="${APP_PATH}/capture/logs/system.$DATE.log"
-echo "${DATE} ${TIME} \"Launch\" $SCRIPT_PATH" >> "$LOG"
+echo "${DATE} ${TIME} \"Stop\" $SCRIPT_PATH" >> "$LOG"
 
 # Perform the action
 cd ${APP_PATH}
