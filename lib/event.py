@@ -16,7 +16,7 @@ class event():
         global latest_event
 
         expiry = cfg.getOrAddInt('event','expiry_seconds',600)
-        now = datetime.datetime.now(datetime.timezone.utc).astimezone()
+        now = datetime.datetime.now(datetime.timezone.utc)
 
         if e is None:
            return True, 0
@@ -28,7 +28,7 @@ class event():
     def __init__(self):
         
         global latest_event
-        local_time = datetime.datetime.now(datetime.timezone.utc).astimezone()
+        local_time = datetime.datetime.now(datetime.timezone.utc)
         self.when = local_time
 
         self.id = cfg.getOrAddInt('event','next_id', 1)

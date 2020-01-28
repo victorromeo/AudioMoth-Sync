@@ -123,6 +123,9 @@ class diskio:
         if not success:
             print(f'Unmount failed: {r}')
         
+            parent_device_path = device_path.rstrip('1234567890')
+            r, success = output_shell(f'sudo eject {parent_device_path}')
+        
         return success
     
     def get_md5(self, path):
@@ -130,3 +133,6 @@ class diskio:
 
     def exists(self, path):
         return os.path.exists(path)
+    
+    def sendmail(subject:str, message:str, to:str):
+        output_shell(f"echo '{message}' | mail -s '{subject}' {to}")

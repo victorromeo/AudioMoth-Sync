@@ -26,16 +26,19 @@ logger.setLevel(os.environ.get("LOGLEVEL", "INFO"))
 
 log_format = "%(asctime)s - %(levelname)s - %(message)s"
 log_level = 10
-handler = logging.handlers.TimedRotatingFileHandler(f'{cfg.paths.logs}/activity', when="midnight", interval=1)
+handler = logging.handlers.TimedRotatingFileHandler(f'{cfg.paths.logs}/activity',
+                                                    when="midnight",
+                                                    interval=1,
+                                                    utc=True)
 handler.setLevel(log_level)
 formatter = logging.Formatter(log_format)
 handler.setFormatter(formatter)
 
 # add a suffix which you want
-handler.suffix = "%Y%m%d"
+handler.suffix = "%Y%m%d.log"
 
 #need to change the extMatch variable to match the suffix for it
-handler.extMatch = re.compile(r"^\d{8}$") 
+handler.extMatch = re.compile(r"^[0-9]{8}\.log$") 
 
 # finally add handler to logger    
 logger.addHandler(handler)

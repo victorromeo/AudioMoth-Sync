@@ -81,6 +81,9 @@ class Config:
 
         self.paths.audiomoth = self.getOrAdd('paths','audiomoth_mount', '/mnt/Moth')
 
+        # Email
+        self.emailto = self.getOrAdd('email','to','')
+
         # Read Audiomoth Pins
         self.pins.swdio = self.getOrAddInt('pins','swdio', fallback=20)
         self.pins.swclk = self.getOrAddInt('pins','swclk', fallback=21)
