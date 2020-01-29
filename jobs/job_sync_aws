@@ -32,7 +32,7 @@ LOG="${APP_PATH}/capture/logs/system.$DATE.log"
 echo "${DATE} ${TIME} \"AWS Sync\" $SCRIPT_PATH" >> "$LOG"
 
 # Perform the action
-aws s3 sync $APP_PATH/capture/logs "s3://factorem001/devices/${HOSTNAME}/capture/logs/" --recursive
+aws s3 sync $APP_PATH/capture/logs "s3://factorem001/devices/${HOSTNAME}/capture/logs/"
 
 # Move (not sync) to clean up straight away
 aws s3 mv $APP_PATH/capture/photos "s3://factorem001/devices/${HOSTNAME}/capture/photos/" --recursive
