@@ -3,7 +3,10 @@ import sys
 from lib.config import cfg
 from lib.log import logging
 from lib.shell import output_shell
+from lib.event import event
 import os
+from datetime import datetime
+import pytz
 
 class diskio:
     def check_disk(self, report = True, display = True, path:str = "/"):
@@ -56,7 +59,7 @@ class diskio:
             logging.warning("No recordings found")
             return False
 
-        return success
+        return success, fileList
 
     def sync_files(self, from_path:str, to_path:str):
         logging.info("Transferring AudioMoth to Local")
@@ -65,6 +68,16 @@ class diskio:
 
         if success:
             logging.info("Transfer complete")
+
+        return success
+
+    def sync_file(self, from_path:str, to_path:str):
+        logging.info(f"File Transfer {from_path} to {to_path}")
+        syncFilesCommand = f"rsync {from_path} {to_path}"
+        e, success = output_shell(syncFilesCommand)
+
+        if not success:
+            logging.info(f"File Transfer failed: {e}")
 
         return success
 
@@ -78,15 +91,36 @@ class diskio:
             logging.info("Removal complete")
 
         return success
+    
+    def filename_to_date(self, filename:str, pattern:str = '%Y%m%d_%H%M%S', extension: str = '.WAV'):
+        return datetime.strptime(filename.strip(extension),pattern).replace(tzinfo=pytz.UTC)
 
-    def transfer_audio(self, moth_mount_path:str, audio_path:str):
+    def transfer_audio(self, moth_mount_path:str, audio_path:str, e: event):
+        success, filenameList = self.list_files(moth_mount_path)
 
-        if self.list_files(moth_mount_path) \
-            and self.sync_files(moth_mount_path, audio_path) \
-                and self.remove_files(moth_mount_path, pattern = '*.WAV', sudo = True):
+        if success:
+            # Copy over only the relevant audio files
+            for filepath in filenameList:
+                try:
+                    filename = filepath.lstrip(f'{moth_mount_path}/')
+                    filedate = self.filename_to_date(filename)
+                    if filedate > e.get_event_start() or filedate < e.get_event_stop():
+                        success |= self.sync_file(f'{moth_mount_path}/{filename}', audio_path)
+                        if success:
+                            print(f'Transfer moved {filepath}')
+                        else:
+                            print(f'Tranfer issue found {filepath}')
+                    else:
+                        print(f'Transfer skipping {filepath}')
+                except:
+                    print(f'Transfer failed {filepath}')
+
+        self.remove_files(moth_mount_path, pattern = '*.WAV', sudo = True)
+
+        if success:
             logging.info("Transfer complete")
         else:
-            logging.warning("Transfer failed")
+            logging.warning("Transfer failures occurred")
 
     def format_partition_fat32(self, moth_mount_path:str):
 
@@ -134,5 +168,8 @@ class diskio:
     def exists(self, path):
         return os.path.exists(path)
     
-    def sendmail(subject:str, message:str, to:str):
-        output_shell(f"echo '{message}' | mail -s '{subject}' {to}")
+    def sendmail(self, subject:str, message:str, to:str):
+        return output_shell(f"echo '{message}' | mail -s '{subject}' {to}")
+
+    def wifi_details(self):
+        return output_shell("iwconfig")

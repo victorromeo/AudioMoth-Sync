@@ -295,7 +295,7 @@ class Device(Machine):
 
         getTimeCommand = "./apps/usbhidtool 0x10C4 0x0002 {0}".format(''.join('0x{:02x} '.format(a) for a in buffer))
         result, success = output_shell(getTimeCommand)
-        #logging.info("getTime {0}:{1}".format(getTimeCommand, result))
+        #logger.info("getTime {0}:{1}".format(getTimeCommand, result))
 
         if success and result != 'NULL':
             print(result)

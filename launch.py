@@ -8,21 +8,20 @@ import crontab
 from signal import pause
 from time import sleep
 from threading import Thread, ThreadError
-from statistics import mean
 import pijuice
 
-from lib.log import logging
+from lib.log import logger
 from lib.audiomoth import audiomoth
 from lib.camera import camera
 from lib.diskio import diskio
 from lib.config import cfg
-from lib.event import event
+from lib.event import event, latest_event, event_queue
 
 c = camera()
 am = audiomoth()
 d = diskio()
 pij = pijuice.PiJuice()
-q = []
+#q = []
 ql = 10
 qr = 0.0
 
@@ -58,17 +57,16 @@ def install_cron_jobs():
 def on_motion():
     # Creating a new event automatically logs it
     e = event()
-
-    logging.info("on_motion")
-
-    min_recording_time = cfg.getOrAddInt('audio','min_recording_time', 60)
-
+    logger.info("on_motion")
     c.click(cfg.camera.photo_count, cfg.camera.photo_delay_sec)
 
-    sleep(min_recording_time if min_recording_time > 1 and min_recording_time < 3600 else 60)
+    init_sleep = e.get_seconds_until_stop()
+    sleep(init_sleep if init_sleep > 0 else 1)
 
-def on_no_motion():
-    logging.info("on_no_motion")
+    return e
+
+def on_no_motion(e:event):
+    logger.info("on_no_motion")
 
     print("Recording stopping")
     x = Thread(target=am.mountMoth, args=())
@@ -76,7 +74,7 @@ def on_no_motion():
     x.join()
     print("Transferring audio")
 
-    d.transfer_audio(cfg.paths.audiomoth, cfg.paths.recordings)
+    d.transfer_audio(cfg.paths.audiomoth, cfg.paths.recordings, e)
 
     print("Transferred audio")
     y = Thread(target=am.unmountMoth, args=())
@@ -84,15 +82,6 @@ def on_no_motion():
     y.join()
 
     print("Recording started")
-
-def enqueue(io):
-    q.append(io)
-    if len(q) > cfg.motion.motion_queue_length:
-        q.pop(0)
-
-def motion():
-    return len(q) < cfg.motion.motion_queue_length \
-        or mean(q) > cfg.motion.motion_threshold_inactive
 
 def movement():
     m = int(pij.status.GetIoDigitalInput(2)['data'])
@@ -102,13 +91,17 @@ def movement():
 # Configure
 # install_cron_jobs()
 
+if cfg.is_stop_required():
+    print('Stop required. Please clear in config.ini to start')
+    exit()
+
 attempt=1
 max_attempt=3
 success=False
 while attempt <= max_attempt and not success:
     try:
         am.resetMoth()
-        success = am.mountMoth()
+        am.mountMoth()
 
         # Clean up the AudioMoth to begin
         d.remove_files(am.mount_path, pattern = "*.WAV", sudo = True)
@@ -126,26 +119,29 @@ while attempt <= max_attempt and not success:
         attempt = attempt + 1
 
 if not success:
-    logging.warning('AudioMoth startup failed')
+    logger.warning('AudioMoth startup failed')
     print('Please check AudioMoth')
     exit()
+
+wifi_details,e = d.wifi_details()
+d.sendmail(cfg.name, f"{cfg.name} Server Starting\nWiFi\n{wifi_details}", cfg.emailto)
 
 # Main Loop
 while True:
     if movement() > 0:
-        on_motion()
-        q.clear()
+        e = on_motion()
+        d.sendmail(cfg.name, f"{cfg.name} Motion Event (id:{e.id})\nWiFi\n{wifi_details}", cfg.emailto)
 
         # Detect when motion stops
-        enqueue(movement())
-        while motion():
-            enqueue(movement())
+        while not e.has_ended(): 
+            e.enqueue(movement())
 
-        on_no_motion()
+        on_no_motion(e)
 
     if cfg.is_reboot_required():
         print('Rebooting')
-        logging.info('Rebooting')
+        logger.info('Rebooting')
+        d.sendmail(f"{cfg.name} Server Restarting", f"{cfg.name} Server Rebooting", cfg.emailto)
         am.unmountMoth()
         cfg.reboot_clear()
         cfg.stop_clear()
@@ -153,7 +149,8 @@ while True:
 
     if cfg.is_restart_required():
         print('Restarting')
-        logging.info('Restarting')
+        d.sendmail(f"{cfg.name} Server Restarting", f"{cfg.name} Server Restarting", cfg.emailto)
+        logger.info('Restarting')
         am.unmountMoth()
         cfg.restart_clear()
         exit()
@@ -161,11 +158,13 @@ while True:
     while cfg.is_stop_required():
         cfg.stop()
         print('Paused', flush=True)
-        logging.info('Paused')
+        d.sendmail(f"{cfg.name} Server Stop", f"{cfg.name} Server Stop", cfg.emailto)
+        logger.info('Paused')
 
         while cfg.is_stop_required():
             sleep(1)
 
         cfg.stop_clear()
-        logging.info('Resumed')
+        logger.info('Resumed')
+        d.sendmail(f"{cfg.name} Server Resume", f"{cfg.name} Server Resume", cfg.emailto)
         print('Resumed', flush=True)

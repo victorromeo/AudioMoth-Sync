@@ -1,10 +1,10 @@
 from subprocess import Popen, PIPE
-from lib.log import logging
+from lib.log import logger
 
 def output_shell(line, raise_on_non_zero:bool = False):
 
     try:
-        logging.debug(line)
+        logger.debug(line)
         print(f'SHELL:{line}', flush=True)
         shell_command = Popen(line, stdout=PIPE, stderr=PIPE, shell=True)
     except OSError:
@@ -17,7 +17,7 @@ def output_shell(line, raise_on_non_zero:bool = False):
 
     if shell_command.returncode != 0 and raise_on_non_zero:
         print(f"Shell command failed to execute:{line}\n{err}\n{output if not None else ''}")
-        logging.warning(f"Command failed: {line}")
+        logger.warning(f"Command failed: {line}")
         return output, False
 
     return str(output.decode("utf-8")), True

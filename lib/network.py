@@ -1,5 +1,5 @@
 from lib.config import cfg
-from lib.log import logging
+from lib.log import logger
 import requests
 
 ## This library tests connectivity to a URL 
@@ -21,5 +21,5 @@ class network:
             _ = requests.get(self.url, timeout=self.timeout)
             return True
         except requests.ConnectionError:
-            logging.info('ping connection error')
+            logger.info('ping connection error')
         return False

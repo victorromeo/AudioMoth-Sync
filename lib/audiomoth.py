@@ -1,5 +1,5 @@
 from lib.config import cfg
-from lib.log import logging
+from lib.log import logger
 
 # This operation requires that udev has a custom rule to create a symbolic link when the AudioMoth is detected
 # To Add the required udev rule, run the following command
@@ -62,7 +62,7 @@ class audiomoth:
         self.device_name = moth_device_name[:-1] if (success and len(moth_device_name) > 3) else None
         self.device_path = path_to_watch + '/' + moth_device_name[:-1] if (success and len(moth_device_name) > 3) else None
 
-        logging.debug("getMothDeviceName:{0}".format(self.device_name))
+        logger.debug("getMothDeviceName:{0}".format(self.device_name))
         return self.device_name
 
     def getMothMountPath(self):
@@ -71,7 +71,7 @@ class audiomoth:
         mount_path, success = output_shell(command)
         self.mount_path = mount_path[:-1] if (success and len(mount_path) > 3) else None
 
-        logging.debug("getMothMountPath:{0}".format(self.mount_path))
+        logger.debug("getMothMountPath:{0}".format(self.mount_path))
         return self.mount_path
 
     def is_detected(self):
@@ -80,10 +80,10 @@ class audiomoth:
 
         if detected:
             print(f"AudioMoth device {self.device_name} detected at {self.device_path}")
-            logging.debug(f"is_detected: {self.device_name} {self.device_path}")
+            logger.debug(f"is_detected: {self.device_name} {self.device_path}")
         else:
             print("d", end= '', flush=True)
-            logging.debug(f"is_detected:-".format(detected))
+            logger.debug(f"is_detected:-".format(detected))
 
         return detected
 
@@ -97,18 +97,18 @@ class audiomoth:
         else:
             print("m", end='', flush=True)
 
-        logging.debug("is_mounted:{0}".format(mounted))
+        logger.debug("is_mounted:{0}".format(mounted))
         return mounted
 
     def usbModeOn(self):
         self.swdio.outputMode(True)
         self.clk.close()
         self.rst.close()
-        logging.debug("usbModeOn")
+        logger.debug("usbModeOn")
 
     def usbModeOff(self):
         self.swdio.close()
-        logging.debug("usbModeOff")
+        logger.debug("usbModeOff")
 
     def resetMoth(self):
         print("AudioMoth restarting")
@@ -120,7 +120,7 @@ class audiomoth:
 
         # Close the pin to allow RST to complete
         self.rst.close()
-        logging.debug("resetMoth")
+        logger.debug("resetMoth")
 
     def mountMoth(self):
 
@@ -133,14 +133,10 @@ class audiomoth:
         mounted = self.is_mounted()
 
         if (detected and mounted):
-            logging.debug("mountMoth: Already mounted")
-            return
+            logger.debug("mountMoth: Already mounted")
+            return True
 
         print('\nMounting AudioMoth')
-
-
-
-
 
         #before = dict ([(f, None) for f in os.listdir (path_to_watch)])
 
@@ -160,7 +156,7 @@ class audiomoth:
                 dTimeout -= dPoll
 
             if not detected:
-                logging.error("mountMoth: failed to detect via reset")
+                logger.error("mountMoth: failed to detect via reset")
                 raise Exception("Failed to detected device via reset")
 
             # Mount the moth
@@ -175,7 +171,7 @@ class audiomoth:
             #     mTimeout -= mPoll
 
             # if not mounted:
-            #     logging.error("mountMoth: failed to mount device via reset")
+            #     logger.error("mountMoth: failed to mount device via reset")
             #     raise Exception("Failed to mount device via reset")
 
         if not detected:
@@ -191,7 +187,7 @@ class audiomoth:
                 dTimeout -= dPoll
 
             if not detected:
-                logging.error("mountMoth: failed to detect moth")
+                logger.error("mountMoth: failed to detect moth")
                 raise Exception("Failed to detected device. Check AudioMoth is connected")
 
         # Mount the moth
@@ -205,12 +201,12 @@ class audiomoth:
             mTimeout -= mPoll
 
         if not mounted:
-            logging.error("mountMoth: failed to mount moth filesystem")
+            logger.error("mountMoth: failed to mount moth filesystem")
             raise Exception("Failed to mount device. Check for SD card and filesystem on SD Card")
 
         print(self.mount_path)
         print("Moth successfully mounted")
-        logging.debug("mountMoth: Complete")
+        logger.debug("mountMoth: Complete")
         return
 
     def unmountMoth(self):
@@ -221,7 +217,7 @@ class audiomoth:
         dPoll    = 1
 
         if not self.is_detected():
-            logging.warning("unmountMoth: not connected")
+            logger.warning("unmountMoth: not connected")
             return
 
         print('\nUnmounting AudioMoth')
@@ -249,7 +245,7 @@ class audiomoth:
 
             if self.is_mounted():
                 print("Moth failed to unmount")
-                logging.error("unmountMoth: failed to unmount")
+                logger.error("unmountMoth: failed to unmount")
                 raise Exception("Failed to unmount moth")
 
         # Turn off the AudioMoth usb support
@@ -265,11 +261,11 @@ class audiomoth:
 
         if self.is_detected():
             print("Moth failed to remove device")
-            logging.warning("unmountMoth: failed to remove device")
+            logger.warning("unmountMoth: failed to remove device")
             raise Exception("Failed to remove device")
 
         print ("Moth successfully unmounted")
-        logging.debug("unmountMoth: Complete")
+        logger.debug("unmountMoth: Complete")
         self.device_name = None
         self.device_path = None
         self.mount_path = None
@@ -305,7 +301,7 @@ class audiomoth:
                 if (success):
                     print(result)
 
-                logging.info("setTime {0}:{1}".format(setTimeCommand, result))
+                logger.info("setTime {0}:{1}".format(setTimeCommand, result))
                 print('Set time success.')
             else:
                 print('Set time failed. USB HID not enabled.')
@@ -325,7 +321,7 @@ class audiomoth:
 
                 getTimeCommand = "./apps/usbhidtool 0x10C4 0x0002 {0}".format(''.join('0x{:02x} '.format(a) for a in buffer))
                 result, success = output_shell(getTimeCommand)
-                logging.info("getTime {0}:{1}".format(getTimeCommand, result))
+                logger.info("getTime {0}:{1}".format(getTimeCommand, result))
                 if success and result != 'NULL':
                     print(result)
                     hexValues = result.split(' ')
@@ -340,7 +336,7 @@ class audiomoth:
                 print("{0}".format(mothDate))
         except:
             print('Set time failed. Unexpected error')
-            logging.warn("getTime failed due to unexpected error")
+            logger.warn("getTime failed due to unexpected error")
         finally:
             self.hid_off()
 

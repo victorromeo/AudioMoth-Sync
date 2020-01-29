@@ -25,10 +25,13 @@ class PIRMode(Enum):
 class Motion:
     mode:PIRMode
     pins:List[int]
-    motion_queue_length:int
-    motion_delay_sec:int
-    motion_threshold_active:float
-    motion_threshold_inactive:float
+
+class Event:
+    event_queue_length:int
+    event_start_offset_sec:int
+    event_stop_offset_sec:int
+    event_threshold_active:float
+    event_threshold_inactive:float
 
 class Paths:
     root:str
@@ -52,6 +55,7 @@ class Config:
     paths: Paths
     camera: Camera
     motion: Motion
+    event: Event
     network: Network
     health: Health
 
@@ -70,6 +74,7 @@ class Config:
         self.paths = Paths()
         self.camera = Camera()
         self.motion = Motion()
+        self.event = Event()
         self.network = Network()
         self.health = Health()
 
@@ -91,16 +96,20 @@ class Config:
         self.pins.rst = self.getOrAddInt('pins','rst', fallback=16)
         self.pins.pwr = self.getOrAddInt('pins','pwr', fallback=26)
 
-        # Read PIR
+        # Motion
+
         self.motion.mode = \
             PIRMode.PIJUICE_MODE if self.getOrAdd('motion','mode', fallback='pijuice') == 'pijuice' \
             else PIRMode.PI_MODE if self.getOrAdd('motion','mode', fallback='') == 'pi' \
                 else None
-
-        self.motion.motion_queue_length = self.getOrAddInt('motion','queue_length', fallback=10)
         self.motion.pins = [int(x) for x in self.getOrAdd('motion','pins', fallback='').split()] 
-        self.motion.motion_threshold_active = self.getOrAddFloat('motion','threshold_active', fallback=0.1)
-        self.motion.motion_threshold_inactive = self.getOrAddFloat('motion','threshold_inactive',fallback=0.0)
+        
+        # Event
+        self.event.event_queue_length = self.getOrAddInt('event','queue_length', fallback=10)
+        self.event.event_threshold_active = self.getOrAddFloat('event','threshold_active', fallback=0.1)
+        self.event.event_threshold_inactive = self.getOrAddFloat('event','threshold_inactive',fallback=0.0)
+        self.event.event_start_offset_sec = self.getOrAddInt('event','start_offset', -30)
+        self.event.event_stop_offset_sec = self.getOrAddInt('event','end_offset', 30)
 
         # Read Camera
         self.camera.photo_count = self.getOrAddInt('camera', 'photos_count', fallback = 5)
@@ -263,7 +272,7 @@ class Config:
         self.update('health', 'stopped', True)
 
     def stop_clear(self):
-        self.getOrAddBool('health','stoppeed', False)
+        self.getOrAddBool('health','stopped', False)
         self.update('health','stopped',False)
 
     def is_stopped(self):

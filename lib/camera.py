@@ -2,7 +2,7 @@ from datetime import datetime, timezone
 from picamera import PiCamera
 from time import sleep
 from lib.config import cfg
-from lib.log import logging
+from lib.log import logger
 
 class camera:
 
@@ -22,11 +22,11 @@ class camera:
     def click(self, count:int = 1, delay_ms:int = 0, comment = None):
 
         if count <= 0 or count > 100:
-            logging.warning("click: count out of range ({0})".format(count))
+            logger.warning("click: count out of range ({0})".format(count))
             return
 
         if delay_ms < 0 or delay_ms > 10000:
-            logging.warning("click: delay_ms out of range ({0})".format(delay_ms))
+            logger.warning("click: delay_ms out of range ({0})".format(delay_ms))
             return
 
         with PiCamera() as camera:
