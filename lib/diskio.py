@@ -172,4 +172,26 @@ class diskio:
         return output_shell(f"echo '{message}' | mail -s '{subject}' {to}")
 
     def wifi_details(self):
-        return output_shell("iwconfig")
+        output, error = output_shell("sudo iwconfig")
+        if output is None:
+            output = ""
+
+        results = []
+
+        for line in output.splitlines():
+            results.append(line.strip())
+
+        return " ".join(results)
+
+    def wifi_networks(self):
+        output, error = output_shell("sudo iwlist scan | grep ESSID")
+        
+        if output is None:
+            output = ""
+        
+        results = []
+        for line in output.splitlines():
+            ssid = line.strip().strip('ESSID:').strip("\"")
+            results.append(f"\'{ssid}\'")
+
+        return "[" + ", ".join(results) + "]"

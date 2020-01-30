@@ -8,7 +8,6 @@ import crontab
 from signal import pause
 from time import sleep
 from threading import Thread, ThreadError
-import pijuice
 
 from lib.log import logger
 from lib.audiomoth import audiomoth
@@ -16,14 +15,14 @@ from lib.camera import camera
 from lib.diskio import diskio
 from lib.config import cfg
 from lib.event import event, latest_event, event_queue
+from lib.power import PiJuicePower as Power
+from datetime import datetime, timedelta
 
 c = camera()
 am = audiomoth()
 d = diskio()
-pij = pijuice.PiJuice()
-#q = []
-ql = 10
-qr = 0.0
+p = Power()
+pij = p.pij
 
 def app_path():
     return os.path.dirname(os.path.abspath(__file__))
@@ -58,7 +57,7 @@ def on_motion():
     # Creating a new event automatically logs it
     e = event()
     logger.info("on_motion")
-    c.click(cfg.camera.photo_count, cfg.camera.photo_delay_sec)
+    c.click(cfg.camera.photo_count, cfg.camera.photo_delay_sec, f'Event:{e.id}')
 
     init_sleep = e.get_seconds_until_stop()
     sleep(init_sleep if init_sleep > 0 else 1)
@@ -83,21 +82,61 @@ def on_no_motion(e:event):
 
     print("Recording started")
 
-def movement():
+def movement(e:event):
     m = int(pij.status.GetIoDigitalInput(2)['data'])
     print(m, end='', flush=True)
+    
     return m
 
-# Configure
-# install_cron_jobs()
+def check_restart():
+    if cfg.is_restart_required():
+        print('Restarting')
+        d.sendmail(f"{cfg.name} Server Restarting", f"{cfg.name} Server Restarting", cfg.emailto)
+        logger.info('Restarting')
+        am.unmountMoth()
+        cfg.restart_clear()
+        exit()
 
-if cfg.is_stop_required():
-    print('Stop required. Please clear in config.ini to start')
-    exit()
+def check_reboot():
+    if cfg.is_reboot_required():
+        print('Rebooting')
+        logger.info('Rebooting')
+        d.sendmail(f"{cfg.name} Server Restarting", f"{cfg.name} Server Rebooting", cfg.emailto)
+        am.unmountMoth()
+        cfg.reboot_clear()
+        cfg.stop_clear()
+        os.system('sudo shutdown -r 1')
+
+def check_power():
+    if p.should_sleep():
+        status = p.status()
+        print('Pi powerdown due to Power state')
+        logger.info(f'Pi powerdown due to Power state: {status}')
+        d.sendmail(f'{cfg.name} Server Powerdown', f'{cfg.name} Server Powerdown \n{status}', cfg.emailto)
+
+def send_status_email():
+    global send_status_email_at
+    now = datetime.utcnow()
+
+    if send_status_email_at is None:
+        send_status_email_at = now
+
+    if send_status_email_at <= now:
+        send_status_email_at = now + timedelta(minutes = 5)
+        power = p.status()
+        wifi_details = d.wifi_details()
+        wifi_networks = d.wifi_networks()
+        d.sendmail(cfg.name, f"{cfg.name} Server Starting\nWiFi\n{wifi_details}\nNetworks\n{wifi_networks}\npower\n{power}", cfg.emailto)
 
 attempt=1
 max_attempt=3
 success=False
+send_status_email_at = datetime.utcnow()
+pi_disk_check = d.check_disk(report = True, display = True, path = cfg.paths.root )
+
+moth_disk_check = {}
+send_status_email()
+
 while attempt <= max_attempt and not success:
     try:
         am.resetMoth()
@@ -105,7 +144,7 @@ while attempt <= max_attempt and not success:
 
         # Clean up the AudioMoth to begin
         d.remove_files(am.mount_path, pattern = "*.WAV", sudo = True)
-        d.check_disk(report = True, display = True, path = am.mount_path)
+        moth_disk_check = d.check_disk(report = True, display = True, path = am.mount_path)
 
         # Configure the AudioMoth for the next recording session
         am.usbModeOn()
@@ -121,39 +160,26 @@ while attempt <= max_attempt and not success:
 if not success:
     logger.warning('AudioMoth startup failed')
     print('Please check AudioMoth')
-    exit()
+    d.sendmail(cfg.name, f"{cfg.name} Error: AudioMoth Failure", cfg.emailto)
+    sleep(5)
 
-wifi_details,e = d.wifi_details()
-d.sendmail(cfg.name, f"{cfg.name} Server Starting\nWiFi\n{wifi_details}", cfg.emailto)
+    exit()
 
 # Main Loop
 while True:
-    if movement() > 0:
+    if movement(None) > 0:
         e = on_motion()
-        d.sendmail(cfg.name, f"{cfg.name} Motion Event (id:{e.id})\nWiFi\n{wifi_details}", cfg.emailto)
+        d.sendmail(cfg.name, f"{cfg.name} Motion Event (id:{e.id})", cfg.emailto)
 
         # Detect when motion stops
         while not e.has_ended(): 
-            e.enqueue(movement())
+            e.enqueue(movement(e))
 
         on_no_motion(e)
 
-    if cfg.is_reboot_required():
-        print('Rebooting')
-        logger.info('Rebooting')
-        d.sendmail(f"{cfg.name} Server Restarting", f"{cfg.name} Server Rebooting", cfg.emailto)
-        am.unmountMoth()
-        cfg.reboot_clear()
-        cfg.stop_clear()
-        os.system('sudo shutdown -r 1')
-
-    if cfg.is_restart_required():
-        print('Restarting')
-        d.sendmail(f"{cfg.name} Server Restarting", f"{cfg.name} Server Restarting", cfg.emailto)
-        logger.info('Restarting')
-        am.unmountMoth()
-        cfg.restart_clear()
-        exit()
+    check_power()
+    check_reboot()
+    check_restart()
 
     while cfg.is_stop_required():
         cfg.stop()
@@ -163,6 +189,10 @@ while True:
 
         while cfg.is_stop_required():
             sleep(1)
+
+            check_power()
+            check_reboot()
+            check_restart()
 
         cfg.stop_clear()
         logger.info('Resumed')

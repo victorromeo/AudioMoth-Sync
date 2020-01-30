@@ -127,6 +127,7 @@ class Config:
         self.health.stop_required = self.getOrAddBool('health','stop_required', False)
 
     def hasSectionOption(self, src, section, option):
+
         addSection = False
         addOption = False
         if not src.has_section(section):
@@ -136,6 +137,7 @@ class Config:
         return addSection, addOption
 
     def addSectionOption(self, src, addSection, section, option, fallback):
+
         tmp = tempfile.NamedTemporaryFile(mode = 'w+t', delete=False)
         dst = ConfigParser()
         for s in src.sections():
@@ -277,19 +279,5 @@ class Config:
 
     def is_stopped(self):
         return self.getOrAddBool('health','stopped',False)
-
-    # def write(self):
-    #     with tempfile.NamedTemporaryFile() as tmp:
-    #         parser = ConfigParser(tmp)
-            
-    #         parser['pins']['swdio'] = self.pins.swdio
-
-    #         tmp.write()
-
-    #         os.rename(tmp.name, self.config_path)
-
-    # def log_file(self):
-    #     now = datetime.datetime.now()
-    #     return f'{self.paths.logs}/activity.{now:%Y%m%d}.log'
 
 cfg = Config()
